@@ -28,4 +28,7 @@ val create_categories : string -> string list -> string list -> value list list
 val create_table : string -> string -> category list -> table
 
 (*creates the db from the list of tables*)
-val create_db : table list -> db
+val db_from_tables : table list -> db
+
+(*main function which calls all others, creating a db from a given json*)
+val create_db : Yojson.Basic.Json -> db
