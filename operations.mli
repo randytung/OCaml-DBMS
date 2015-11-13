@@ -1,3 +1,4 @@
+open Types
 
 (*converts the user input string into a list of readable commands*)
 val translate : string -> string list

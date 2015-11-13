@@ -1,4 +1,5 @@
 open Yojson
+open Types
 
 (*builds a JSON file from the given db*)
 val build : db -> Yojson.Basic.Json
