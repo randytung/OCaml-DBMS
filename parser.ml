@@ -1,22 +1,22 @@
-open Yojson
+open Yojson.Basic.Util
 open Types
 
 exception Parse_Exception
 
 (*creates a list of all table names from the JSON*)
-let parse_table_names (js:Yojson.Basic.Json) : string list =
-  failwith "unimplemented"
+let parse_table_names (js:Yojson.Basic.json) : string list =
+  js |>
 
 (*creates a list of all category names belonging to a table*)
-let parse_cat_names (js:Yojson.Basic.Json) (tab_name:string) : string list =
+let parse_cat_names (js:Yojson.Basic.json) (tab_name:string) : string list =
   failwith "unimplemented"
 
 (*parses a given category's type*)
-let parse_cat_type (js:Yojson.Basic.Json) (cat_name:string) : string =
+let parse_cat_type (js:Yojson.Basic.json) (cat_name:string) : string =
   failwith "unimplemented"
 
 (*parses and creates a list of values from a category based on its inferred type*)
-let create_values (js:Yojson.Basic.Json) (cat_name:string) (typ:string) : value list =
+let create_values (js:Yojson.Basic.json) (cat_name:string) (typ:string) : value list =
   failwith "unimplemented"
 
 (*creates the list of categories that belong in the table from the table's name,
@@ -34,5 +34,5 @@ let db_from_tables (tabs:table list) : db =
   failwith "unimplemented"
 
 (*main function which calls all others, creating a db from a given json*)
-let create_db (js:Yojson.Basic.Json) : db =
+let create_db (js:Yojson.Basic.json) : db =
   failwith "unimplemented"
