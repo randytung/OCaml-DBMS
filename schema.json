@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "propertes": {
+    "tables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "category": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {"type": "string"},
+                "vals": {
+                  "type": "array",
+                  "items": {"type": "string"}
+                  },
+                "typeof": {"type": "string"},
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
