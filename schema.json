@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "propertes": {
+  "properties": {
     "tables": {
       "type": "array",
       "items": {
