@@ -1,0 +1,20 @@
+{
+  "tables":
+    [
+      {
+        "id": "Phone Book",
+        "category": [
+          {
+            "id": "Name",
+            "vals": ["Randy Tung", "Arthur Wang"],
+            "typeof": "string"
+          },
+          {
+            "id":"Phone Number",
+            "vals": ["911","911"],
+            "typeof": "string"
+          }
+        ]
+      }
+    ]
+}
