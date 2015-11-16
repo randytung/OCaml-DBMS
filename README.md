@@ -6,3 +6,7 @@ This project implements a DBMS that we made from scratch.
 
 To Do List
 - [ ] Parser
+- [ ] Operations
+- [ ] normal **formatting**, @mentions, #1234 refs
+- [ ] incomplete
+- [x] completed
