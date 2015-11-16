@@ -21,7 +21,7 @@ val create_categories : string -> string list -> string list -> value list list
                       -> category list
 
 (*creates a table from its name and its categories*)
-val create_table : string -> string -> category list -> table
+val create_table : string -> category list -> table
 
 (*creates the db from the list of tables*)
 val db_from_tables : table list -> db
