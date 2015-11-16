@@ -7,7 +7,7 @@
         "type": "object",
         "properties": {
           "id": {"type": "string"},
-          "category": {
+          "categories": {
             "type": "array",
             "items": {
               "type": "object",
@@ -23,7 +23,7 @@
             }
           }
         },
-        "required": ["id", "category"]
+        "required": ["id", "categories"]
       }
     }
   },
