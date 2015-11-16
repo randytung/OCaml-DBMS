@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "propertes": {
+  "properties": {
     "tables": {
       "type": "array",
       "items": {
@@ -18,11 +18,14 @@
                   "items": {"type": "string"}
                   },
                 "typeof": {"type": "string"},
-              }
+              },
+              "required": ["id", "vals", "typeof"]
             }
           }
-        }
+        },
+        "required": ["id", "category"]
       }
     }
-  }
+  },
+  "required": ["tables"]
 }
