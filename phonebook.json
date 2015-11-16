@@ -3,7 +3,7 @@
     [
       {
         "id": "Phone Book",
-        "category": [
+        "categories": [
           {
             "id": "Name",
             "vals": ["Randy Tung", "Arthur Wang"],
