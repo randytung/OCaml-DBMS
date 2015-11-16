@@ -1,19 +1,19 @@
-open Yojson
+open Yojson.Basic.Util
 open Types
 
 exception Parse_Exception
 
 (*creates a list of all table names from the JSON*)
-val parse_table_names : Yojson.Basic.Json -> string list
+val parse_table_names : Yojson.Basic.json -> string list
 
 (*creates a list of all category names belonging to a table*)
-val parse_cat_names : Yojson.Basic.Json -> string -> string list
+val parse_cat_names : Yojson.Basic.json -> string -> string list
 
 (*parses a given category's type*)
-val parse_cat_type : Yojson.Basic.Json -> string -> string
+val parse_cat_type : Yojson.Basic.json -> string -> string
 
 (*parses and creates a list of values from a category based on its inferred type*)
-val create_values : Yojson.Basic.Json -> string -> string -> value list
+val create_values : Yojson.Basic.json -> string -> string -> value list
 
 (*creates the list of categories that belong in the table from the table's name,
 * the category names, category types, and lists of values for each category*)
@@ -27,4 +27,4 @@ val create_table : string -> category list -> table
 val db_from_tables : table list -> db
 
 (*main function which calls all others, creating a db from a given json*)
-val create_db : Yojson.Basic.Json -> db
+val create_db : Yojson.Basic.json -> db

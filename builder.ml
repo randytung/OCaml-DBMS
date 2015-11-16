@@ -2,9 +2,9 @@ open Yojson.Basic.Util
 open Types
 
 (*builds a JSON file from the given db*)
-val build : db -> Yojson.Basic.json
+let build (db:db) : Yojson.Basic.json =
+  failwith "unimplemented"
 
 (*saves the JSON file to a given file location, overwrites old JSON*)
-val save : db -> string -> unit
-
-
+let save (db:db) (f_name:string) : unit =
+  failwith "unimplemented"
