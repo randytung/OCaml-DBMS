@@ -3,36 +3,31 @@ open Types
 
 exception Parse_Exception
 
-(*creates a list of all table names from the JSON*)
-let parse_table_names (js:Yojson.Basic.json) : string list =
-  js |>
+(* Parses the portion of the JSON representing a single value *)
+let create_val (typ:val_type) (v:Yojson.Basic.json) : value =
+  let str = [v] |> filter_string |> List.hd in
+  match typ with
+  | TInt -> VInt (try (int_of_string str) with _ -> raise Parse_Exception)
+  | TFloat -> VFloat (try (float_of_string str) with _ -> raise Parse_Exception)
+  | TString -> VString str
 
-(*creates a list of all category names belonging to a table*)
-let parse_cat_names (js:Yojson.Basic.json) (tab_name:string) : string list =
-  failwith "unimplemented"
+(* Parses the portion of the JSON representing a single category *)
+let create_cat (cat:Yojson.Basic.json) : category =
+  let id = [cat] |> filter_member "id" |> filter_string |> List.hd in
+  let typ = [cat] |> filter_member "typeof" |> filter_string |> List.hd in
+  let typ' = match typ with
+             | "integer" -> TInt
+             | "float" -> TFloat
+             | _ -> TString in
+  let val_lst = [cat] |> filter_member "vals" |> flatten in
+  {name = id; vals = List.map (create_val typ') val_lst; typeof = typ'}
 
-(*parses a given category's type*)
-let parse_cat_type (js:Yojson.Basic.json) (cat_name:string) : string =
-  failwith "unimplemented"
+(* Parses the portion of the JSON representing a single table *)
+let create_tbl (tbl:Yojson.Basic.json) : table =
+  let id = [tbl] |> filter_member "id" |> filter_string |> List.hd in
+  let cat_lst = [tbl] |> filter_member "categories" |> flatten in
+  {name = id; cats = List.map create_cat cat_lst}
 
-(*parses and creates a list of values from a category based on its inferred type*)
-let create_values (js:Yojson.Basic.json) (cat_name:string) (typ:string) : value list =
-  failwith "unimplemented"
-
-(*creates the list of categories that belong in the table from the table's name,
-* the category names, category types, and lists of values for each category*)
-let create_categories (tab_name:string) (cat_names:string list) (cat_typs:string list)
-                      (val_lsts:value list list) : category list =
-  failwith "unimplemented"
-
-(*creates a table from its name and its categories*)
-let create_table (tab_name:string) (cats:category list) : table =
-  failwith "unimplemented"
-
-(*creates the db from the list of tables*)
-let db_from_tables (tabs:table list) : db =
-  failwith "unimplemented"
-
-(*main function which calls all others, creating a db from a given json*)
 let create_db (js:Yojson.Basic.json) : db =
-  failwith "unimplemented"
+  let tbl_lst = [js] |> filter_member "tables" |> flatten in
+  List.map create_tbl tbl_lst

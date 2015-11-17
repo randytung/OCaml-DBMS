@@ -11,8 +11,23 @@
           },
           {
             "id":"Phone Number",
-            "vals": ["911","911"],
+            "vals": ["adsfas","321"],
+            "typeof": "integer"
+          }
+        ]
+      },
+      {
+        "id": "Phone Book 2",
+        "categories": [
+          {
+            "id": "Name",
+            "vals": ["Grant Stento", "Kristy Liao"],
             "typeof": "string"
+          },
+          {
+            "id":"Phone Number",
+            "vals": ["456","654"],
+            "typeof": "integer"
           }
         ]
       }

@@ -1,30 +1,9 @@
 open Yojson.Basic.Util
 open Types
 
+(* Error raised when JSON can't be properly parsed *)
 exception Parse_Exception
 
-(*creates a list of all table names from the JSON*)
-val parse_table_names : Yojson.Basic.json -> string list
-
-(*creates a list of all category names belonging to a table*)
-val parse_cat_names : Yojson.Basic.json -> string -> string list
-
-(*parses a given category's type*)
-val parse_cat_type : Yojson.Basic.json -> string -> string
-
-(*parses and creates a list of values from a category based on its inferred type*)
-val create_values : Yojson.Basic.json -> string -> string -> value list
-
-(*creates the list of categories that belong in the table from the table's name,
-* the category names, category types, and lists of values for each category*)
-val create_categories : string -> string list -> string list -> value list list
-                      -> category list
-
-(*creates a table from its name and its categories*)
-val create_table : string -> category list -> table
-
-(*creates the db from the list of tables*)
-val db_from_tables : table list -> db
-
-(*main function which calls all others, creating a db from a given json*)
+(** Parses a JSON following the provided schema.json and turns it into a
+ *  db data structure. Fails if the JSON provided can't be properly parsed.*)
 val create_db : Yojson.Basic.json -> db
