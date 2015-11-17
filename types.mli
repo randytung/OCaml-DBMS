@@ -8,6 +8,6 @@ type val_type =
   | TInt
   | TFloat
 
-type category = {name : string; vals : value list; typeof : val_type}
-type table = {name : string; cats : category list}
+type category = {name : string; vals : value list; typ : val_type}
+type table = {title : string; cats : category list}
 type db = table list

@@ -6,24 +6,24 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": {"type": "string"},
+          "title": {"type": "string"},
           "categories": {
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
-                "id": {"type": "string"},
-                "vals": {
+                "name": {"type": "string"},
+                "values": {
                   "type": "array",
                   "items": {"type": "string"}
                   },
-                "typeof": {"type": "string"},
+                "typ": {"type": "string"},
               },
-              "required": ["id", "vals", "typeof"]
+              "required": ["name", "values", "typ"]
             }
           }
         },
-        "required": ["id", "categories"]
+        "required": ["title", "categories"]
       }
     }
   },

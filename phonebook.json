@@ -1,35 +1,34 @@
 {
-  "tables":
-    [
-      {
-        "id": "Phone Book",
-        "categories": [
-          {
-            "id": "Name",
-            "vals": ["Randy Tung", "Arthur Wang"],
-            "typeof": "string"
-          },
-          {
-            "id":"Phone Number",
-            "vals": ["adsfas","321"],
-            "typeof": "integer"
-          }
-        ]
-      },
-      {
-        "id": "Phone Book 2",
-        "categories": [
-          {
-            "id": "Name",
-            "vals": ["Grant Stento", "Kristy Liao"],
-            "typeof": "string"
-          },
-          {
-            "id":"Phone Number",
-            "vals": ["456","654"],
-            "typeof": "integer"
-          }
-        ]
-      }
-    ]
+  "tables": [
+    {
+      "title": "Phone Book",
+      "categories": [
+        {
+          "name": "Name",
+          "values": ["Randy Tung", "Arthur Wang"],
+          "typ": "string"
+        },
+        {
+          "name": "Phone Number",
+          "values": ["123", "321"],
+          "typ": "integer"
+        }
+      ]
+    },
+    {
+      "title": "Phone Book 2",
+      "categories": [
+        {
+          "name": "Name",
+          "values": ["Grant Stento", "Kristy Liao"],
+          "typ": "string"
+        },
+        {
+          "name": "Phone Number",
+          "values": ["456", "654"],
+          "typ": "integer"
+        }
+      ]
+    }
+  ]
 }
