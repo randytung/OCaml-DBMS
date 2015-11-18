@@ -7,7 +7,7 @@ This project implements a DBMS that we made from scratch.
 To Do List
 - [x] Parser (11/17)
 - [ ] Operations (11/22)
-- [ ] Builder (11/26 - 11/29)
+- [x] Builder (11/26 - 11/29)
 - [ ] REPL (11/30)
 - [ ] Main (11/30)
 
