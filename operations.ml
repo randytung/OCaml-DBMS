@@ -10,7 +10,7 @@ let select (db:db) (reqs:string) : db =
 
 (*creates a new table with the given name*)
 let create (db:db) (tab_name:string) : db =
-  failwith "unimplemented"
+  {title = tab_name; cats = []}::db
 
 (*inserts a row into a given table with its categories and corresponding values*)
 let insert (db:db) (tab_name:string) (cat_names:string list)
