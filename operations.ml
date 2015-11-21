@@ -34,15 +34,18 @@ let delete (db:db) (tab_name:string) (reqs:string) : db =
   failwith "unimplemented"
 
 (*deletes a given table*)
-let drop (db:db) (tab_name:string) : db =
-  failwith "unimplemented"
+let rec drop (db:db) (tab_name:string) : db =
+  match db with
+  | [] -> failwith "Table not in database"
+  | h::t -> let {title = s; cats = _} = h in
+            if tab_name = s then t else h::(drop t tab_name)
 
 (*adds, removes, or modifies a given category from a given table*)
 let alter (db:db) (cat_name:string) (command:string) : db =
   failwith "unimplemented"
 
 (*evaluates the commands given to it and returns an updated db*)
-let eval (commands:string list) (db:db) =
+let eval (db:db) (commands:string list) : db =
   failwith "unimplemented"
 
 (*takes an existing db and user input to evaluate commands and return an

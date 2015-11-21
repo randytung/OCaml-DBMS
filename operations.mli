@@ -26,7 +26,7 @@ val drop : db -> string -> db
 val alter : db -> string -> string -> db
 
 (*evaluates the commands given to it and returns an updated db*)
-val eval : string list -> db
+val eval : db -> string list -> db
 
 (*takes an existing db and user input to evaluate commands and return an
 * updated db*)
