@@ -14,7 +14,7 @@ To Do List
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- |
 | 11/15  | 11/16 | 11/17 | 11/18 | 11/19 | 11/20 | 11/21 |
-|        |~~Parser~~|~~Parser~~|Prelim | Prelim| Ops   | Ops   |
+|        |~~Parser~~|~~Parser~~|~~Prelim~~ | ~~Prelim~~| Ops   | Ops   |
 
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- |
