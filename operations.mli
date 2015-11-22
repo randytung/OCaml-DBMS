@@ -2,7 +2,7 @@ open Types
 
 (*returns a pair where fst is the first word of the string delimited by spaces
 * and snd is the remaining string*)
-val next_word : string -> (string * string)
+val next_word : string -> char -> (string * string)
 
 (*returns a db restricted to the requirements given*)
 val select : db -> string -> db
@@ -18,7 +18,7 @@ val insert : db -> string -> string list -> string list -> db
 val update : db -> string -> (string * string) list -> string -> db
 
 (*deletes a given row from a given table*)
-val delete : db -> string -> string -> db
+val delete : db -> string -> db
 
 (*deletes a given table*)
 val drop : db -> string -> db
@@ -27,7 +27,7 @@ val drop : db -> string -> db
 val alter : db -> string -> string -> db
 
 (*evaluates the commands given to it and returns an updated db*)
-val eval : db -> string list -> db
+val eval : db -> string -> db
 
 (*takes an existing db and user input to evaluate commands and return an
 * updated db*)
