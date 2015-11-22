@@ -1,7 +1,8 @@
 open Types
 
-(*converts the user input string into a list of readable commands*)
-val translate : string -> string list
+(*returns a pair where fst is the first word of the string delimited by spaces
+* and snd is the remaining string*)
+val next_word : string -> (string * string)
 
 (*returns a db restricted to the requirements given*)
 val select : db -> string -> db

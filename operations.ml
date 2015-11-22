@@ -1,8 +1,17 @@
 open Types
 
-(*converts the user input string into a list of readable commands*)
-let translate (input:string) : string list =
-  failwith "unimplemented"
+(*returns a pair where fst is the first word of the string delimited by spaces
+* and snd is the remaining string*)
+let next_word (input:string) : (string*string) =
+  let input' = String.trim input in
+  let spaceindex = (try (String.index input' (' ')) with
+  |Not_found -> String.length input'
+  |_ -> String.index input' (' ')) in
+    let first = String.sub input' 0 spaceindex in
+    let second = String.sub input' spaceindex
+      ((String.length input') - (String.length first)) in
+    let second' = String.trim second in
+    (first,second')
 
 (*returns a db restricted to the requirements given*)
 let select (db:db) (reqs:string) : db =
