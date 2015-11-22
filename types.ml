@@ -1,13 +1,16 @@
 type value =
-  | VString of string
+  | VNull
   | VInt of int
+  | VBool of bool
   | VFloat of float
+  | VString of string
 
 type val_type =
-  | TString
   | TInt
+  | TBool
   | TFloat
+  | TString
 
-type category = {name : string; vals : value list; typ : val_type}
-type table = {title : string; cats : category list}
+type column = {name : string; vals : value list; typ : val_type}
+type table = {title : string; cols : column list}
 type db = table list

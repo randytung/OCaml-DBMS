@@ -2,7 +2,7 @@
   "tables": [
     {
       "title": "Phone Book",
-      "categories": [
+      "columns": [
         {
           "name": "Name",
           "values": ["Randy Tung", "Arthur Wang"],
@@ -17,10 +17,10 @@
     },
     {
       "title": "Phone Book 2",
-      "categories": [
+      "columns": [
         {
           "name": "Name",
-          "values": ["Grant Stento", "Kristy Liao"],
+          "values": ["GrantStento", "Kristy Liao"],
           "typ": "string"
         },
         {

@@ -7,7 +7,7 @@
         "type": "object",
         "properties": {
           "title": {"type": "string"},
-          "categories": {
+          "columns": {
             "type": "array",
             "items": {
               "type": "object",
@@ -23,7 +23,7 @@
             }
           }
         },
-        "required": ["title", "categories"]
+        "required": ["title", "columns"]
       }
     }
   },
