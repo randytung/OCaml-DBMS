@@ -40,3 +40,5 @@ let create again =
 let main () : unit =
   let (db, file_name) = create (db_exists()) in
   loop db file_name
+
+let _ = main()
