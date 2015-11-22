@@ -10,7 +10,7 @@ let select (db:db) (reqs:string) : db =
 
 (*creates a new table with the given name*)
 let create (db:db) (tab_name:string) : db =
-  {title = tab_name; cats = []}::db
+  {title = tab_name; cols = []}::db
 
 (*inserts a row into a given table with its categories and corresponding values*)
 let insert (db:db) (tab_name:string) (cat_names:string list)
@@ -37,7 +37,7 @@ let delete (db:db) (tab_name:string) (reqs:string) : db =
 let rec drop (db:db) (tab_name:string) : db =
   match db with
   | [] -> failwith "Table not in database"
-  | h::t -> let {title = s; cats = _} = h in
+  | h::t -> let {title = s; cols = _} = h in
             if tab_name = s then t else h::(drop t tab_name)
 
 (*adds, removes, or modifies a given category from a given table*)
