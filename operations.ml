@@ -76,10 +76,10 @@ let add_nulls tbl =
   else List.map (fun x -> VNull) (List.hd tbl.cols).vals
 
 let add_col tbl cmd =
-  let (col_name, cmd_2) = next_word cmd in  
+  let (col_name, cmd_2) = next_word cmd in
   let (col_type, cmd_3) = next_word cmd_2 in
   if cmd_3 = "" then
-    if not (List.exists (fun x -> x.name = col_name) tbl.cols) then 
+    if not (List.exists (fun x -> x.name = col_name) tbl.cols) then
       let col_typ = string_to_type col_type in
       let new_col = {name = col_name; vals = add_nulls tbl; typ = col_typ} in
       {tbl with cols = new_col::tbl.cols}
@@ -227,7 +227,7 @@ let rec drop (db:db) (cmd:string) : db =
   let (tbl_name, cmd_2) = next_word cmd in
   if cmd_2 = "" then
     match db with
-    | [] -> failwith "Table not in database"
+    | [] -> []
     | h::t -> if h.title = tbl_name then t else h::(drop t tbl_name)
   else failwith "not a valid command"
 
