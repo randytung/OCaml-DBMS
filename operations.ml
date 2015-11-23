@@ -189,18 +189,17 @@ let select (db:db) (reqs:string) : db =
 
 (******** CREATE ********)
 
-(* syntax on w3 is totally different; create needs to call add_col
- * and it needs to be parsed like insert, using list_chunks *)
 
-(*creates a new table with the given name*)
+(*creates a new table with the names that are given*)
 let create (db:db) (cmd:string) : db =
-  let (command,next_commands) = next_word cmd in
-  let (table_name,next_commands) = next_word next_commands in
-  let list_columns = list_chunks next_commands ',' in
+  let (command,next_commands) = next_word cmd in (* grabs the word TABLE, but it is worthless *)
+  let (table_name,next_commands) = next_word next_commands in (* grabs the table name *)
+  let list_columns = list_chunks next_commands ',' in (* Since the rest of the commands are delimited by commas, list chunks will divide it into a list*)
   let new_table = List.fold_left (fun a c -> add_col a c)
     {title = table_name ; cols = []} list_columns in
   new_table::db
-
+  (* the list.fold call will call add_col on the accumulator, which is an empty
+  table, and it will add the columns into the new table *)
 
 (* old code *
   let (tbl_name, cmd_2) = next_word cmd in
