@@ -131,14 +131,63 @@ let find_table db tbl_name =
 
 let where t r = [1;2;3]
 
+let find_cols (tbl:table) (col_names:string list) : column list =
+  let rec helper clist colnames acc =
+    (match clist with
+    |[] -> acc
+    |h::t -> if List.mem colnames h.name then let newacc = acc @ h in
+            helper t colnames newacc
+            else helper t colnames acc) in
+  helper (tbl.cols) col_names []
+
+(*returns a new value list from a col's value list and an index list*)
+let rec new_values (vals : value list) (ind : int list) (acc : value list) =
+  match ind with
+  |[] -> acc
+  |h::t -> let newacc = acc @ List.nth h in new_values vals t newacc
+
+let rec new_cols (cl : column list) (i : int list) (acc : column list) =
+  match cl with
+  |[] -> acc
+  |h::t -> let newacc = acc @ {name = h.name; vals = new_values (h.vals)(i)([]);
+            typ = h.typ} in
+            new_cols t i newacc
+
+let print = ()
 
 (**********************)
 (*      Commands      *)
 (**********************)
 
 (*returns a db restricted to the requirements given*)
-let select (db:db) (reqs:string) : db =
-  failwith "unimplemented"
+let select (db:db) (cmd : string) (reqs:string) : db =
+  let findex' = match_string " from " (S.lowercase cmd) in
+  let findex = (match findex' with
+              |None -> failwith "missing \"from\""
+              |Some s -> s) in
+  let tname = fst(S.sub cmd (findex+6) ((S.length cmd)-(findex+6))) in
+  let table = find_table db tname in
+  let star = match_string " * " cmd in
+  let whre = match_string " where " (S.lowercase cmd) in
+  match whre with
+  |None -> match star with
+          |None -> let colnames = list_chunks (S.sub cmd 0 findex) ',' in
+                  let collist = find_cols table colnames in
+                  print collist;
+                  db
+          |Some v -> table.cols
+  |Some i -> let collist = (match star with
+                          |None ->let colnames =
+                                  list_chunks (S.sub cmd 0 findex) ',' in
+                                  find_cols table colnames
+                          |Some i -> table.cols) in
+              let indecies =
+              extra_word " where " where (S.sub cmd i ((S.length cmd)-i) in
+              let restrcols = index_filter indecies collist in
+              let newcols = new_cols restrcols indecies [] in
+              print newcols;
+              db
+
 
 
 (******** CREATE ********)

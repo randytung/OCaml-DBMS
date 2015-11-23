@@ -5,7 +5,7 @@ open Types
 val next_word : string -> (string * string)
 
 (*returns a db restricted to the requirements given*)
-val select : db -> string -> db
+val select : db -> string -> string -> db
 
 (*creates a new table with the given name*)
 val create : db -> string -> db
