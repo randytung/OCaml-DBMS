@@ -57,19 +57,62 @@ let string_to_type str =
   | "string"  -> TString
   | _         -> failwith "you goofed up big time, brah"
 
+let convert_to_vstring (value:value) : value =
+  match value with
+  |VInt x -> VString(string_of_int (x))
+  |VBool x -> VString(string_of_bool (x))
+  |VFloat x -> VString(string_of_float (x))
+  |VString x -> value
+  |VNull -> VNull
+
+let convert_to_vint (value:value) : value =
+  match value with
+  |VInt x -> value
+  |VBool x -> VNull
+  |VFloat x -> VInt(int_of_float x)
+  |VString x -> let answer = try VInt(int_of_string x) with
+                |Failure z -> VNull
+                |Invalid_argument z -> VNull in answer
+  |VNull -> VNull
+
+let convert_to_vfloat (value:value) : value =
+  match value with
+  |VInt x -> VFloat (float_of_int x)
+  |VBool x -> VNull
+  |VFloat x -> value
+  |VString x -> let answer = try VFloat(float_of_string x) with
+                |Failure z -> VNull
+                |Invalid_argument z -> VNull in answer
+  |VNull -> VNull
+
+let convert_to_vbool (value:value) : value =
+  match value with
+  |VInt x -> VNull
+  |VBool x -> value
+  |VFloat x -> VNull
+  |VString x -> let answer = try VBool(bool_of_string x) with
+                |Failure z -> VNull
+                |Invalid_argument z -> VNull in answer
+  |VNull -> VNull
+
 (* petition to not have alter modify as a command??? please?? *)
-(*let rec convert_col_type col typ =
+let rec convert_col_type col typ =
   if col.typ = typ then col
   else
-    let f = match typ with
-            | TString -> match col.typ with
-                         | TInt    ->
-                         | TBool   ->
-                         | TFloat  ->
-                         | TString ->
-  match col with
-  | h::t -> match h with
-            | *)
+    match typ with
+            |TString -> let new_vals =
+              List.map (fun x -> convert_to_vstring x ) col.vals in
+              {col with vals = new_vals}
+            |TInt -> let new_vals =
+              List.map (fun x -> convert_to_vint x ) col.vals in
+              {col with vals = new_vals}
+            |TFloat -> let new_vals =
+              List.map (fun x -> convert_to_vfloat x) col.vals in
+              {col with vals = new_vals}
+            |TBool ->  let new_vals =
+              List.map (fun x -> convert_to_vbool x ) col.vals in
+              {col with vals = new_vals}
+
 
 let add_nulls tbl =
   if List.length tbl.cols = 0 then []
@@ -95,17 +138,20 @@ let drop_col tbl cmd =
   else failwith "not a command"
 
 (* deprecated? *)
-(* let modify_col tbl cmd =
+let modify_col tbl cmd =
   let (col_name, cmd_2) = next_word cmd in
   let (col_type, cmd_3) = next_word cmd_2 in
   if cmd_3 = "" then
     let old_col = try List.find (fun x -> x.name = col_name) tbl.cols with
                   | _ -> failwith "can't find it brah" in
     let col_typ = string_to_type col_type in
-    match new_col = convert_col_typ old_col col_typ with
-    | None   -> failwith "column's values not compatible with new type"
-    | Some a -> a
-  else failwith "not a command" *)
+    let new_cols = List.map (fun x -> if x.name = col_name
+                          then convert_col_type old_col col_typ
+                       else
+                          x) tbl.cols  in
+    {tbl with cols = new_cols}
+
+  else failwith "not a command"
 
 (* old code *
 let rec delete_column (column_list: column list) (column_name: string) : column list=
@@ -204,12 +250,17 @@ let select (db:db) (cmd : string) (reqs:string) : db =
 
 (******** CREATE ********)
 
-(* syntax on w3 is totally different; create needs to call add_col
- * and it needs to be parsed like insert, using list_chunks *)
 
-(*creates a new table with the given name*)
+(*creates a new table with the names that are given*)
 let create (db:db) (cmd:string) : db =
-  failwith "unimplemented"
+  let (command,next_commands) = next_word cmd in (* grabs the word TABLE, but it is worthless *)
+  let (table_name,next_commands) = next_word next_commands in (* grabs the table name *)
+  let list_columns = list_chunks next_commands ',' in (* Since the rest of the commands are delimited by commas, list chunks will divide it into a list*)
+  let new_table = List.fold_left (fun a c -> add_col a c)
+    {title = table_name ; cols = []} list_columns in
+  new_table::db
+  (* the list.fold call will call add_col on the accumulator, which is an empty
+  table, and it will add the columns into the new table *)
 
 (* old code *
   let (tbl_name, cmd_2) = next_word cmd in
@@ -303,7 +354,7 @@ let alter (db:db) (cmd:string) : db =
   let new_tbl = match S.lowercase cmd_typ with
                 | "add"    -> add_col tbl cmd_3
                 | "drop"   -> extra_word "column" (drop_col tbl) cmd_3
-                | "modify" (* -> extra_word "column" (modify_col tbl) cmd_3 *)
+                | "modify" -> extra_word "column" (modify_col tbl) cmd_3
                 | _        -> failwith "not a command" in
   List.map (fun x -> if x.title = new_tbl.title then new_tbl else x) db
 
