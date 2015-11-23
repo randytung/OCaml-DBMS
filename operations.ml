@@ -131,6 +131,7 @@ let find_table db tbl_name =
 
 let where t r = [1;2;3]
 
+(*finds column objects from the table and a column NAME list*)
 let find_cols (tbl:table) (col_names:string list) : column list =
   let rec helper clist colnames acc =
     (match clist with
@@ -146,6 +147,7 @@ let rec new_values (vals : value list) (ind : int list) (acc : value list) =
   |[] -> acc
   |h::t -> let newacc = acc @ List.nth h in new_values vals t newacc
 
+(*builds new columns out of new values specified by the int list*)
 let rec new_cols (cl : column list) (i : int list) (acc : column list) =
   match cl with
   |[] -> acc
@@ -169,13 +171,23 @@ let select (db:db) (cmd : string) (reqs:string) : db =
   let table = find_table db tname in
   let star = match_string " * " cmd in
   let whre = match_string " where " (S.lowercase cmd) in
+  (*findex is the index where "from" begins. tname is the table name, and table
+  * is the table object. star is the index of the * character and whre is the index
+  * of "where". whre and star can be none, meaning we should handle the query
+  * differently.*)
   match whre with
+  (*If there is no "where" and no star, use find_cols to find the columns asked
+  * for. If there is a star, however, return all the columns in the table.*)
   |None -> match star with
           |None -> let colnames = list_chunks (S.sub cmd 0 findex) ',' in
                   let collist = find_cols table colnames in
                   print collist;
                   db
           |Some v -> table.cols
+  (*If there is a "where" and there is a star, use where() to find the index list
+  *and use new_cols to get the new columns built out of values at the index list.
+  *If there is no star, restrict the initial columns to be the ones specified
+  *before using where() and new_cols.*)
   |Some i -> let collist = (match star with
                           |None ->let colnames =
                                   list_chunks (S.sub cmd 0 findex) ',' in
