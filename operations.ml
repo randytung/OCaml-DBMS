@@ -182,7 +182,7 @@ let find_cols (tbl:table) (col_names:string list) : column list =
   let rec helper clist colnames acc =
     (match clist with
     |[] -> acc
-    |h::t -> if List.mem colnames h.name then let newacc = acc @ h in
+    |h::t -> if List.mem h.name colnames then let newacc = acc @ [h] in
             helper t colnames newacc
             else helper t colnames acc) in
   helper (tbl.cols) col_names []
@@ -191,29 +191,33 @@ let find_cols (tbl:table) (col_names:string list) : column list =
 let rec new_values (vals : value list) (ind : int list) (acc : value list) =
   match ind with
   |[] -> acc
-  |h::t -> let newacc = acc @ List.nth h in new_values vals t newacc
+  |h::t -> let newacc = acc @ [List.nth vals h] in new_values vals t newacc
 
 (*builds new columns out of new values specified by the int list*)
 let rec new_cols (cl : column list) (i : int list) (acc : column list) =
   match cl with
   |[] -> acc
-  |h::t -> let newacc = acc @ {name = h.name; vals = new_values (h.vals)(i)([]);
-            typ = h.typ} in
+  |h::t -> let newacc = acc @ [{name = h.name; vals = new_values (h.vals)(i)([]);
+            typ = h.typ}] in
             new_cols t i newacc
 
-let print = ()
+let print x = print_string "hi"
+
+let match_string x y = Some 1
+
+let index_filter x y = []
 
 (**********************)
 (*      Commands      *)
 (**********************)
 
 (*returns a db restricted to the requirements given*)
-let select (db:db) (cmd : string) (reqs:string) : db =
+let select (db:db) (cmd : string) : db =
   let findex' = match_string " from " (S.lowercase cmd) in
   let findex = (match findex' with
               |None -> failwith "missing \"from\""
               |Some s -> s) in
-  let tname = fst(S.sub cmd (findex+6) ((S.length cmd)-(findex+6))) in
+  let tname = fst(next_word(S.sub cmd (findex+6) ((S.length cmd)-(findex+6)))) in
   let table = find_table db tname in
   let star = match_string " * " cmd in
   let whre = match_string " where " (S.lowercase cmd) in
@@ -223,13 +227,14 @@ let select (db:db) (cmd : string) (reqs:string) : db =
   * differently.*)
   match whre with
   (*If there is no "where" and no star, use find_cols to find the columns asked
-  * for. If there is a star, however, return all the columns in the table.*)
-  |None -> match star with
+  * for. If there is a star, however, print all the columns in the table.*)
+  |None -> (match star with
           |None -> let colnames = list_chunks (S.sub cmd 0 findex) ',' in
                   let collist = find_cols table colnames in
-                  print collist;
+                  let _ = print collist in
                   db
-          |Some v -> table.cols
+          |Some v -> let _ = print table.cols in
+                    db)
   (*If there is a "where" and there is a star, use where() to find the index list
   *and use new_cols to get the new columns built out of values at the index list.
   *If there is no star, restrict the initial columns to be the ones specified
@@ -240,10 +245,10 @@ let select (db:db) (cmd : string) (reqs:string) : db =
                                   find_cols table colnames
                           |Some i -> table.cols) in
               let indecies =
-              extra_word " where " where (S.sub cmd i ((S.length cmd)-i) in
+              where table (snd(next_word(S.sub cmd i ((S.length cmd)-i)))) in
               let restrcols = index_filter indecies collist in
               let newcols = new_cols restrcols indecies [] in
-              print newcols;
+              let _ = print newcols in
               db
 
 
