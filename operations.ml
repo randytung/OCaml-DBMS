@@ -194,7 +194,13 @@ let select (db:db) (reqs:string) : db =
 
 (*creates a new table with the given name*)
 let create (db:db) (cmd:string) : db =
-  failwith "unimplemented"
+  let (command,next_commands) = next_word cmd in
+  let (table_name,next_commands) = next_word next_commands in
+  let list_columns = list_chunks next_commands ',' in
+  let new_table = List.fold_left (fun a c -> add_col a c)
+    {title = table_name ; cols = []} list_columns in
+  new_table::db
+
 
 (* old code *
   let (tbl_name, cmd_2) = next_word cmd in
