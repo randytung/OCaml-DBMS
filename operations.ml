@@ -57,19 +57,62 @@ let string_to_type str =
   | "string"  -> TString
   | _         -> failwith "you goofed up big time, brah"
 
+let convert_to_vstring (value:value) : value =
+  match value with
+  |VInt x -> VString(string_of_int (x))
+  |VBool x -> VString(string_of_bool (x))
+  |VFloat x -> VString(string_of_float (x))
+  |VString x -> value
+  |VNull -> VNull
+
+let convert_to_vint (value:value) : value =
+  match value with
+  |VInt x -> value
+  |VBool x -> VNull
+  |VFloat x -> VInt(int_of_float x)
+  |VString x -> let answer = try VInt(int_of_string x) with
+                |Failure z -> VNull
+                |Invalid_argument z -> VNull in answer
+  |VNull -> VNull
+
+let convert_to_vfloat (value:value) : value =
+  match value with
+  |VInt x -> VFloat (float_of_int x)
+  |VBool x -> VNull
+  |VFloat x -> value
+  |VString x -> let answer = try VFloat(float_of_string x) with
+                |Failure z -> VNull
+                |Invalid_argument z -> VNull in answer
+  |VNull -> VNull
+
+let convert_to_vbool (value:value) : value =
+  match value with
+  |VInt x -> VNull
+  |VBool x -> value
+  |VFloat x -> VNull
+  |VString x -> let answer = try VBool(bool_of_string x) with
+                |Failure z -> VNull
+                |Invalid_argument z -> VNull in answer
+  |VNull -> VNull
+
 (* petition to not have alter modify as a command??? please?? *)
-(*let rec convert_col_type col typ =
+let rec convert_col_type col typ =
   if col.typ = typ then col
   else
-    let f = match typ with
-            | TString -> match col.typ with
-                         | TInt    ->
-                         | TBool   ->
-                         | TFloat  ->
-                         | TString ->
-  match col with
-  | h::t -> match h with
-            | *)
+    match typ with
+            |TString -> let new_vals =
+              List.map (fun x -> convert_to_vstring x ) col.vals in
+              {col with vals = new_vals}
+            |TInt -> let new_vals =
+              List.map (fun x -> convert_to_vint x ) col.vals in
+              {col with vals = new_vals}
+            |TFloat -> let new_vals =
+              List.map (fun x -> convert_to_vfloat x) col.vals in
+              {col with vals = new_vals}
+            |TBool ->  let new_vals =
+              List.map (fun x -> convert_to_vbool x ) col.vals in
+              {col with vals = new_vals}
+
 
 let add_nulls tbl =
   if List.length tbl.cols = 0 then []
@@ -141,17 +184,20 @@ let rec add_to_columns vals cols cols_left =
 
 
 (* deprecated? *)
-(* let modify_col tbl cmd =
+let modify_col tbl cmd =
   let (col_name, cmd_2) = next_word cmd in
   let (col_type, cmd_3) = next_word cmd_2 in
   if cmd_3 = "" then
     let old_col = try List.find (fun x -> x.name = col_name) tbl.cols with
                   | _ -> failwith "can't find it brah" in
     let col_typ = string_to_type col_type in
-    match new_col = convert_col_typ old_col col_typ with
-    | None   -> failwith "column's values not compatible with new type"
-    | Some a -> a
-  else failwith "not a command" *)
+    let new_cols = List.map (fun x -> if x.name = col_name
+                          then convert_col_type old_col col_typ
+                       else
+                          x) tbl.cols  in
+    {tbl with cols = new_cols}
+
+  else failwith "not a command"
 
 (* old code *
 let rec delete_column (column_list: column list) (column_name: string) : column list=
@@ -177,24 +223,95 @@ let find_table db tbl_name =
 
 let where t r = [1;2;3]
 
+(*finds column objects from the table and a column NAME list*)
+let find_cols (tbl:table) (col_names:string list) : column list =
+  let rec helper clist colnames acc =
+    (match clist with
+    |[] -> acc
+    |h::t -> if List.mem h.name colnames then let newacc = acc @ [h] in
+            helper t colnames newacc
+            else helper t colnames acc) in
+  helper (tbl.cols) col_names []
+
+(*returns a new value list from a col's value list and an index list*)
+let rec new_values (vals : value list) (ind : int list) (acc : value list) =
+  match ind with
+  |[] -> acc
+  |h::t -> let newacc = acc @ [List.nth vals h] in new_values vals t newacc
+
+(*builds new columns out of new values specified by the int list*)
+let rec new_cols (cl : column list) (i : int list) (acc : column list) =
+  match cl with
+  |[] -> acc
+  |h::t -> let newacc = acc @ [{name = h.name; vals = new_values (h.vals)(i)([]);
+            typ = h.typ}] in
+            new_cols t i newacc
+
+let print x = print_string "hi"
+
+let match_string x y = Some 1
+
+let index_filter x y = []
 
 (**********************)
 (*      Commands      *)
 (**********************)
 
 (*returns a db restricted to the requirements given*)
-let select (db:db) (reqs:string) : db =
-  failwith "unimplemented"
+let select (db:db) (cmd : string) : db =
+  let findex' = match_string " from " (S.lowercase cmd) in
+  let findex = (match findex' with
+              |None -> failwith "missing \"from\""
+              |Some s -> s) in
+  let tname = fst(next_word(S.sub cmd (findex+6) ((S.length cmd)-(findex+6)))) in
+  let table = find_table db tname in
+  let star = match_string " * " cmd in
+  let whre = match_string " where " (S.lowercase cmd) in
+  (*findex is the index where "from" begins. tname is the table name, and table
+  * is the table object. star is the index of the * character and whre is the index
+  * of "where". whre and star can be none, meaning we should handle the query
+  * differently.*)
+  match whre with
+  (*If there is no "where" and no star, use find_cols to find the columns asked
+  * for. If there is a star, however, print all the columns in the table.*)
+  |None -> (match star with
+          |None -> let colnames = list_chunks (S.sub cmd 0 findex) ',' in
+                  let collist = find_cols table colnames in
+                  let _ = print collist in
+                  db
+          |Some v -> let _ = print table.cols in
+                    db)
+  (*If there is a "where" and there is a star, use where() to find the index list
+  *and use new_cols to get the new columns built out of values at the index list.
+  *If there is no star, restrict the initial columns to be the ones specified
+  *before using where() and new_cols.*)
+  |Some i -> let collist = (match star with
+                          |None ->let colnames =
+                                  list_chunks (S.sub cmd 0 findex) ',' in
+                                  find_cols table colnames
+                          |Some i -> table.cols) in
+              let indecies =
+              where table (snd(next_word(S.sub cmd i ((S.length cmd)-i)))) in
+              let restrcols = index_filter indecies collist in
+              let newcols = new_cols restrcols indecies [] in
+              let _ = print newcols in
+              db
+
 
 
 (******** CREATE ********)
 
-(* syntax on w3 is totally different; create needs to call add_col
- * and it needs to be parsed like insert, using list_chunks *)
 
-(*creates a new table with the given name*)
+(*creates a new table with the names that are given*)
 let create (db:db) (cmd:string) : db =
-  failwith "unimplemented"
+  let (command,next_commands) = next_word cmd in (* grabs the word TABLE, but it is worthless *)
+  let (table_name,next_commands) = next_word next_commands in (* grabs the table name *)
+  let list_columns = list_chunks next_commands ',' in (* Since the rest of the commands are delimited by commas, list chunks will divide it into a list*)
+  let new_table = List.fold_left (fun a c -> add_col a c)
+    {title = table_name ; cols = []} list_columns in
+  new_table::db
+  (* the list.fold call will call add_col on the accumulator, which is an empty
+  table, and it will add the columns into the new table *)
 
 (* old code *
   let (tbl_name, cmd_2) = next_word cmd in
@@ -301,7 +418,7 @@ let alter (db:db) (cmd:string) : db =
   let new_tbl = match S.lowercase cmd_typ with
                 | "add"    -> add_col tbl cmd_3
                 | "drop"   -> extra_word "column" (drop_col tbl) cmd_3
-                | "modify" (* -> extra_word "column" (modify_col tbl) cmd_3 *)
+                | "modify" -> extra_word "column" (modify_col tbl) cmd_3
                 | _        -> failwith "not a command" in
   List.map (fun x -> if x.title = new_tbl.title then new_tbl else x) db
 

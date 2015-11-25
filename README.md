@@ -8,7 +8,7 @@ To Do List
 - [x] Parser (11/17)
 - [ ] Operations (11/22)
 - [x] Builder (11/26 - 11/29)
-- [ ] REPL (11/30)
+- [x] REPL (11/30)
 - [x] Main (11/30)
 
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
@@ -24,4 +24,4 @@ To Do List
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- |
 | 11/29  | 11/30 | 12/1  | 12/2  | 12/3  | 12/4  | 12/5  |
-|~~Builder~~|REPL/~~MAIN~~| Test| Test  |  Test |turnup |
+|~~Builder~~|~~REPL/MAIN~~| Test| Test  |  Test |turnup |
