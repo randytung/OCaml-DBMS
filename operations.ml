@@ -94,6 +94,52 @@ let drop_col tbl cmd =
     else {tbl with cols = new_tbl}
   else failwith "not a command"
 
+(* Takes in the name of a column and returns the associated record *)
+let rec find_col_info c_name cols =
+  match cols with
+  | [] -> failwith "Column doesn't exist"
+  | h::t -> if h.name = c_name then h else find_col_info c_name t
+
+(* Takes in list of column names and returns list of column records *)
+let rec find_cols c_names cols =
+  match c_names with
+  | [] -> []
+  | h::t -> (find_col_info h cols) :: (find_cols t cols)
+
+let rec replace_table db tab_name table =
+  match db with
+  | [] -> []
+  | h::t -> if h.title = tab_name then table::t else h::(replace_table t tab_name table)
+
+let get_val (str:string) =
+  if String.get str 0 = ''' then
+    VString (String.sub str 1 ((String.length str)-1))
+  else
+    try VInt(int_of_string str) with
+    | _ -> (try VBool(bool_of_string str) with
+            | _ -> (try VFloat(float_of_string str) with
+                    | _ -> failwith "Bad value"))
+
+let val_ok value typ =
+  match value, typ with
+  | VInt _, TInt | VBool _, TBool | VFloat _, TFloat | VString _, TString -> true
+  | _, _ -> false
+
+let rec add_to_columns vals cols cols_left =
+  match vals, cols, cols_left with
+  | [], c, [] -> c
+  | [], h::t, _ -> let new_c = {name=h.name; vals=h.vals @ [VNull]; typ=h.typ} in
+                   add_to_columns [] (new_c::t) t
+  | h::t, _, [] -> failwith "too many values given"
+  | h1::t1, h2::t2, _ -> let h1_val = get_val h1 in
+                         if val_ok h1_val h2.typ then
+                           let new_c = {name=h2.name; vals=h2.vals @ [h1_val]; typ=h2.typ} in
+                           add_to_columns t1 (new_c::t2) t2)
+                         else
+                           failwith "mismatched types"
+  | _, _, _ -> failwith "bad"
+
+
 (* deprecated? *)
 (* let modify_col tbl cmd =
   let (col_name, cmd_2) = next_word cmd in
@@ -159,9 +205,22 @@ let create (db:db) (cmd:string) : db =
 
 (* inserts a row into a given table with its
  * categories and corresponding values *)
-let insert (db:db) (tab_name:string) (cat_names:string list)
-           (rows:string list) : db =
-  failwith "unimplemented"
+let insert (db:db) (req:string) : db =
+  (* get indices of columns, *)
+  let tab_name, rest = next_word req in
+  let snd_word, rest' = next_word rest in
+  let snd_word_lower = String.lowercase snd_word in
+  let table = find_table db tab_name in
+  if snd_word_lower = "values" then
+    (* Get rid of parenthesis *)
+    let values = String.sub rest' 0 (String.length rest' - 1) in
+    let val_lst = list_chunks values ',' in
+    let columns = add_to_columns val_lst table.cols table.cols in
+    let new_table = {title=table.title; cols=columns} in
+    replace_table db tab_name new_table
+  else
+    let columns =
+
 
 
 (******** UPDATE ********)
