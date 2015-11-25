@@ -177,7 +177,7 @@ let rec add_to_columns vals cols cols_left =
   | h1::t1, h2::t2, _ -> let h1_val = get_val h1 in
                          if val_ok h1_val h2.typ then
                            let new_c = {name=h2.name; vals=h2.vals @ [h1_val]; typ=h2.typ} in
-                           add_to_columns t1 (new_c::t2) t2)
+                           add_to_columns t1 (new_c::t2) t2
                          else
                            failwith "mismatched types"
   | _, _, _ -> failwith "bad"
@@ -336,7 +336,7 @@ let insert (db:db) (req:string) : db =
     let new_table = {title=table.title; cols=columns} in
     replace_table db tab_name new_table
   else
-    let columns =
+    failwith "fail"
 
 
 
