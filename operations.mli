@@ -11,7 +11,7 @@ val select : db -> string -> db
 val create : db -> string -> db
 
 (*inserts a row into a given table with its categories and corresponding values*)
-val insert : db -> string -> string list -> string list -> db
+val insert : db -> string -> db
 
 (*updates a record in the table with new values matched with their corresponding
 * categories*)
