@@ -149,11 +149,13 @@ let rec find_cols c_names cols =
   | [] -> []
   | h::t -> (find_col_info h cols) :: (find_cols t cols)
 
+(* Replaces the table with [tab_name] in [db] with a different [table] *)
 let rec replace_table db tab_name table =
   match db with
   | [] -> []
   | h::t -> if h.title = tab_name then table::t else h::(replace_table t tab_name table)
 
+(* Converts [str] to value type *)
 let get_val (str:string) =
   if String.get str 0 = ''' then
     VString (String.sub str 1 ((String.length str)-1))
@@ -163,23 +165,35 @@ let get_val (str:string) =
             | _ -> (try VFloat(float_of_string str) with
                     | _ -> failwith "Bad value"))
 
-let val_ok value typ =
-  match value, typ with
+(* Check if a given [value] type-matches a given [val_type]
+   (used for checking type of a value before
+   adding to a column of [val_type]) *)
+let val_ok value val_typ =
+  match value, val_typ with
   | VInt _, TInt | VBool _, TBool | VFloat _, TFloat | VString _, TString -> true
   | _, _ -> false
 
+(* Adds a list of strings [vals] to [cols]. [cols_left] keeps track of columns
+   that haven't been added to yet.
+   Only add a value if its type matches the column's type.
+   If [cols] is longer than [vals], add VNull to the rest of the columns *)
 let rec add_to_columns vals cols cols_left =
   match vals, cols, cols_left with
   | [], c, [] -> c
-  | [], h::t, _ -> let new_c = {name=h.name; vals=h.vals @ [VNull]; typ=h.typ} in
-                   add_to_columns [] (new_c::t) t
+  | [], h::t, _ ->
+      (* More columns than values given, so append VNull *)
+      let new_c = {name=h.name; vals=h.vals @ [VNull]; typ=h.typ} in
+      add_to_columns [] (new_c::t) t
   | h::t, _, [] -> failwith "too many values given"
-  | h1::t1, h2::t2, _ -> let h1_val = get_val h1 in
-                         if val_ok h1_val h2.typ then
-                           let new_c = {name=h2.name; vals=h2.vals @ [h1_val]; typ=h2.typ} in
-                           add_to_columns t1 (new_c::t2) t2
-                         else
-                           failwith "mismatched types"
+  | h1::t1, h2::t2, _ ->
+      (* Convert string to a value type*)
+      let h1_val = get_val h1 in
+      (* Check if type of values matches column type before appending *)
+      if val_ok h1_val h2.typ then
+        let new_c = {name=h2.name; vals=h2.vals @ [h1_val]; typ=h2.typ} in
+        add_to_columns t1 (new_c::t2) t2
+      else
+        failwith "mismatched types"
   | _, _, _ -> failwith "bad"
 
 
@@ -217,6 +231,7 @@ let rec modify_column (column_list: column list) (column_name: string)
            else
               h::modify_column (t) (column_name) (original_name) *)
 
+(* Finds table with [tbl_name] in [db] *)
 let find_table db tbl_name =
   try List.find (fun x -> x.title = tbl_name) db with
   | _ -> failwith "table does not exist"
@@ -323,16 +338,20 @@ let create (db:db) (cmd:string) : db =
 (* inserts a row into a given table with its
  * categories and corresponding values *)
 let insert (db:db) (req:string) : db =
-  (* get indices of columns, *)
+  (* Find table name *)
   let tab_name, rest = next_word req in
   let snd_word, rest' = next_word rest in
   let snd_word_lower = String.lowercase snd_word in
   let table = find_table db tab_name in
+  (* If the second word lowercase is values, then user didn't pass in specific
+     column names *)
   if snd_word_lower = "values" then
-    (* Get rid of parenthesis *)
-    let values = String.sub rest' 0 (String.length rest' - 1) in
+    (* Get rid of beginning/ending parenthesis around input values *)
+    let values = String.sub rest' 0 ((String.length rest') - 1) in
+    (* Convert to value list and add to columns *)
     let val_lst = list_chunks values ',' in
     let columns = add_to_columns val_lst table.cols table.cols in
+    (* Construct new list of columns for this table and replace table *)
     let new_table = {title=table.title; cols=columns} in
     replace_table db tab_name new_table
   else
