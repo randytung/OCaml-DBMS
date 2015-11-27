@@ -46,6 +46,34 @@ let rec list_chunks input del =
   | None -> [h]
   | Some s -> h::(list_chunks s del)
 
+let rec is_substring str sub pos=
+  if pos + S.length sub > S.length str then (false, -1)
+  else
+    if S.sub str pos (S.length sub) = sub then (true, pos)
+    else
+      is_substring str sub (pos+1)
+
+(* returns a pair of (column_names, values) that make up [input] delimited by [del].
+ * each element of the list is trimmed to remove extra spaces. *)
+let rec list_cols_vals input del : (string list * string) =
+  let (h,t) = next_chunk input del in
+  let subs = is_substring h "values" 0 in
+  match h, t, fst subs with
+  | s1, Some s2, true ->
+      let fst_val = S.trim (S.sub s1 (snd subs + 6) (S.length s1 - (snd subs + 6))) in
+      let last_col = S.trim (S.sub s1 0 ((snd subs) - 1)) in
+      (last_col::[], fst_val ^ "," ^ s2)
+  | s1, Some s2, false ->
+      let res = list_cols_vals s2 del in
+      ((s1::fst(res)), snd(res))
+  | _, _, _ -> failwith "fail"
+
+let rec rid_parenthesis xs =
+  List.map
+    (fun f -> if S.get f 0 = '(' then S.sub f 1 (S.length f -1)
+              else
+                if S.get f (S.length f - 1) = ')' then S.sub f 0 (S.length f-1)
+                else f) xs
 
 (******** OTHER ********)
 
@@ -186,7 +214,7 @@ let rec add_to_columns vals cols cols_left =
       add_to_columns [] (new_c::t) t
   | h::t, _, [] -> failwith "too many values given"
   | h1::t1, h2::t2, _ ->
-      (* Convert string to a value type*)
+      (* Convert string to a value type *)
       let h1_val = get_val h1 in
       (* Check if type of values matches column type before appending *)
       if val_ok h1_val h2.typ then
@@ -196,6 +224,40 @@ let rec add_to_columns vals cols cols_left =
         failwith "mismatched types"
   | _, _, _ -> failwith "bad"
 
+let rec replace_col c cols =
+  match cols with
+  | [] -> []
+  | h::t -> if h.name=c.name then c::t else h::(replace_col c t)
+
+let rec remove_col c cols =
+  match cols with
+  | [] -> []
+  | h::t -> if h.name=c.name then t else h::(remove_col c t)
+
+let rec vnull_to_rest cols all_cols =
+  match cols with
+  | [] -> all_cols
+  | h::t ->
+      let new_c = {name=h.name; vals=h.vals @ [VNull]; typ=h.typ} in
+      vnull_to_rest t (replace_col new_c all_cols)
+
+
+let rec add_to_some_cols vals cols cols_left all_cols =
+  if vals <> [] && cols_left = [] then failwith "too many values given"
+  else
+    match vals, cols with
+    | [], _ -> vnull_to_rest cols_left all_cols
+    | h::t, h2::t2 ->
+        let c = find_col_info h2 all_cols in
+        (* Convert string to a value type *)
+        let h_val = get_val h in
+        (* Check if type of values matches column type before appending *)
+        if val_ok h_val c.typ then
+          let new_c = {name=c.name; vals=c.vals @ [h_val]; typ=c.typ} in
+          add_to_some_cols t t2 (remove_col new_c cols_left) (replace_col new_c all_cols)
+        else
+          failwith "mismatched_types"
+    | _, _ -> failwith "fail"
 
 (* deprecated? *)
 let modify_col tbl cmd =
@@ -267,6 +329,7 @@ let print x = print_string "hi"
 let match_string x y = Some 1
 
 let index_filter x y = []
+
 
 (**********************)
 (*      Commands      *)
@@ -343,7 +406,7 @@ let insert (db:db) (req:string) : db =
   let snd_word, rest' = next_word rest in
   let snd_word_lower = String.lowercase snd_word in
   let table = find_table db tab_name in
-  (* If the second word lowercase is values, then user didn't pass in specific
+  (* If second word lowercase is "values," then user didn't pass in specific
      column names *)
   if snd_word_lower = "values" then
     (* Get rid of beginning/ending parenthesis around input values *)
@@ -355,7 +418,12 @@ let insert (db:db) (req:string) : db =
     let new_table = {title=table.title; cols=columns} in
     replace_table db tab_name new_table
   else
-    failwith "fail"
+    let cols_vals = list_cols_vals (rest') ',' in
+    let cols = rid_parenthesis (fst cols_vals) in
+    let vals = rid_parenthesis (list_chunks (snd cols_vals) ',') in
+    let new_cols = add_to_some_cols vals cols table.cols table.cols in
+    let new_table = {title=table.title; cols=new_cols} in
+    replace_table db tab_name new_table
 
 
 
