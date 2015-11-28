@@ -32,12 +32,12 @@ let next_word s =
   | (a, Some b) -> (a, b)
   | (a, None)   -> (a, "")
 
-let next_word_comma s = 
+let next_word_comma s =
    match next_chunk s ',' with
   | (a, Some b) -> (a, b)
   | (a, None)   -> (a, "")
 
-let next_word_quote s = 
+let next_word_quote s =
   match next_chunk s '"' with
   | (a, Some b) -> (a, b)
   | (a, None)   -> (a, "")
@@ -85,7 +85,20 @@ let rec rid_parenthesis xs =
               else
                 if S.get f (S.length f - 1) = ')' then S.sub f 0 (S.length f-1)
                 else f) xs
-
+(* used for update. This helper creates a tuple that returns a tuple of all of
+the columns and the value that you are replacing, and the rest of the
+command for where*)
+let rec parse_set (cmd:string) (acc:(string*string) list ) : (string*string) list * string  =
+  let (next,commands) = next_word cmd in
+  if S.lowercase next = "where" then
+    (acc,commands)
+  else
+    let (set_column,next_commands) = next_word_comma cmd in
+    let (column_name,other_string) = next_word set_column in
+    let (trivial,other_string) = next_word_quote other_string in
+    let column_value = S.sub other_string 0 (S.length other_string -1) in
+    let new_acc = (column_name,column_value)::acc in
+    parse_set next_commands new_acc
 
 (******** OTHER ********)
 
@@ -337,38 +350,41 @@ let rec new_cols (cl : column list) (i : int list) (acc : column list) =
             new_cols t i newacc
 
 
-let convert_to_type (type:string) (value:string) : value = 
-
 (* This helper function takes in a column's value list, the list of ints from
   where that must be replaced, and the value it is replacing it with to create
   a new value list*)
-let rec update_values (vals : value list) (ind : int list) (value:string) (counter: int) : value list =
+let rec update_values (vals : value list) (ind : int list) (value:string)
+  (counter: int) (val_type: val_type): value list =
   match ind,vals with
   |[],_ -> vals
-  |h::t,h'::t' -> if h = counter then 
+  |h::t,h'::t' -> if h = counter then
                     let new_value = (match val_type with
-                      |TInt -> convert_to_vint value
-                      |TBool -> convert_to_vbool value
-                      |TFloat -> convert_to_vfloat value 
-                      |TString -> value) in 
-                    new_value::(update_values t' t value (counter+1))
+                      |TInt -> convert_to_vint (VString(value))
+                      |TBool -> convert_to_vbool (VString(value))
+                      |TFloat -> convert_to_vfloat (VString(value))
+                      |TString -> convert_to_vstring (VString(value))) in
+                    new_value::(update_values t' t value (counter+1) val_type)
                   else
-                    h'::(update_values t' ind value (counter+1))
+                    h'::(update_values t' ind value (counter+1) val_type)
+  |_,_ -> failwith "Something happened that shouldn't have happened"
 
 (* This helper function takes in a table's column list, the list of ints from
-  where, an accumulator of a new column list, and the value_list that was 
+  where, an accumulator of a new column list, and the value_list that was
   parsed from the SET, and returns a new column list*)
-let rec create_cols (cl : column list) (i : int list) (acc : column list) (val_list: (string*string) list) =
-  let rec find_col (column: column) (val_list:(string*string) list) (i:int list) = 
+let rec create_cols (cl : column list) (i : int list) (acc : column list)
+  (val_list: (string*string) list) : column list=
+  let rec find_col (column: column) (val_list:(string*string) list) (i:int list) =
     match val_list with
     |[] -> column
-    |h::t -> if column.name = fst(h) then 
-                let new_values = update_values column.vals i snd(h) 0 in 
-              {name = column.name; vals = new_values; typ = column.typ} in 
+    |h::t -> if column.name = (fst(h)) then
+                let new_values = update_values (column.vals) i (snd(h)) 0 column.typ in
+              {name = column.name; vals = new_values; typ = column.typ}
+              else
+                find_col column t i in
   match cl with
   |[] -> acc
-  |h::t -> let col = find_col h val_list i in 
-            create_cols t i col::acc val_list
+  |h::t -> let col = find_col h val_list i in
+            create_cols t i (col::acc) val_list
 
 
 
@@ -473,19 +489,6 @@ let insert (db:db) (req:string) : db =
     let new_table = {title=table.title; cols=new_cols} in
     replace_table db tab_name new_table
 
-let parse_set (cmd:string) (acc:(string*string) list ) : (string*string) list * string  = 
-  let (next,commands) = next_word cmd in 
-  if S.lowercase next = "where" then 
-    (acc,commands)
-  else
-    let (set_column,next_commands) = next_word_comma cmd in 
-    let (column_name,other_string) = next_word set_column in 
-    let (trivial,other_string) = next_word_quote other_string in 
-    let column_value = S.sub f 0 (S.length f -1) in 
-    let new_acc = (column_name,column_value)::acc in 
-    parse_set next_commands new_acc
-
-
 (******** UPDATE ********)
 
 (* updates a record in the table with new values matched with
@@ -496,21 +499,17 @@ let parse_set (cmd:string) (acc:(string*string) list ) : (string*string) list * 
  * SET ContactName = "Alfred", City = "Hamburg"
  * WHERE CustomerName = "Alfred 2.0" *)
 let update (db:db) (cmd:string) : db =
-  let (tab_name,next_commands) = next_word cmd in 
-  let table = find_table db tab_name in 
-  let (keyword_set,next_commands) = next_word next_commands in 
-    if S.lowercase keyword_set = "set" then 
-      let (val_list,next_commands) = parse_set next_commands in
-      let indices = where table next_commands in 
-
+  let (tab_name,next_commands) = next_word cmd in
+  let table = find_table db tab_name in
+  let (keyword_set,next_commands) = next_word next_commands in
+    if S.lowercase keyword_set = "set" then
+      let (val_list,next_commands) = parse_set next_commands [] in
+      let indices = where table next_commands in
+      let new_cols = create_cols table.cols indices [] val_list in
+      let new_table = {title = tab_name; cols = new_cols} in
+      replace_table db tab_name new_table
     else
       failwith "Did not provide SET parameters"
-
-
-
-
-
-
 
 (******** DELETE ********)
 
