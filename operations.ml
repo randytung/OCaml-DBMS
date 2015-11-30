@@ -46,6 +46,9 @@ let rec list_chunks input del =
   | None -> [h]
   | Some s -> h::(list_chunks s del)
 
+(* returns if [sub] is a substring of [str]
+ * if [sub] is a substring, also return position of its first occurrence
+ * if [sub] is not a substring, returns -1 *)
 let rec is_substring str sub pos=
   if pos + S.length sub > S.length str then (false, -1)
   else
@@ -68,6 +71,7 @@ let rec list_cols_vals input del : (string list * string) =
       ((s1::fst(res)), snd(res))
   | _, _, _ -> failwith "fail"
 
+(* *)
 let rec rid_parenthesis xs =
   List.map
     (fun f -> if S.get f 0 = '(' then S.sub f 1 (S.length f -1)
