@@ -73,8 +73,18 @@ TEST "DeleteOR" = (delete demodb "Customers
   {name="ContactName";vals=[VString("Ana Trujillo");VString("Antonio Moreno");VString("Thomas Hardy")];typ=TString};
   {name="Address";vals=[VString("Avda. de la Constitucion 2222");VString("Mataderos 2312");VString("120 Hanover Sq.")];typ=TString};
   {name="City";vals=[VString("Mexico D.F.");VString("Mexico D.F.");VString("London")];typ=TString};
-  {name="PostalCode";vals=[VString("05021");VString("05023");VString("WA1 1DP")];typ=TString}]}]);
-TEST "Drop" = failwith ""
+  {name="PostalCode";vals=[VString("05021");VString("05023");VString("WA1 1DP")];typ=TString}]}])
+
+let drop_db = [{title="Customers";cols=[{name="CustomerID";vals=[VInt(1);VInt(2);VInt(3);VInt(4);VInt(5)];typ=TInt};
+              {name="CustomerName";vals=[VString("Alfreds Futterkiste");VString("Ana Trujillo Emparedados y helados");VString("Antonio Moreno Taqueria");VString("Around the Horn");VString("Berglunds snabbkop")];typ=TString};
+              {name="ContactName";vals=[VString("Maria Anders");VString("Ana Trujillo");VString("Antonio Moreno");VString("Thomas Hardy");VString("Christina Berglund")];
+              typ=TString}]};{title="Phonebook"; cols=[names; nums]}]
+
+TEST "Drop" = let new_db = drop drop_db "Customers" in
+  let dropped_db = [{title="Phonebook"; cols=[names; nums]}] in
+  let _ = new_db = dropped_db in
+  let next_db = drop new_db "Phonebook" in
+  next_db = []
 
 
 
