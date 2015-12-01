@@ -545,7 +545,7 @@ let eval (db:db) (commands:string) : db =
   | "create" -> extra_word "table" (create db) tail
   | "insert" -> (* extra_word "into" (insert db) tail *) failwith "TODO"
   | "update" -> (* update db tail *) failwith "TODO"
-  | "delete" -> delete db tail
+  | "delete" -> extra_word "from" (delete db) tail
   | "drop"   -> extra_word "table" (drop db) tail
   | "alter"  -> extra_word "table" (alter db) tail
   | _        -> failwith "not a command"
