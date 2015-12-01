@@ -32,6 +32,17 @@ let next_word s =
   | (a, Some b) -> (a, b)
   | (a, None)   -> (a, "")
 
+let next_word_comma s =
+   match next_chunk s ',' with
+  | (a, Some b) -> (a, b)
+  | (a, None)   -> (a, "")
+
+let next_word_quote s =
+  match next_chunk s '"' with
+  | (a, Some b) -> (a, b)
+  | (a, None)   -> (a, "")
+
+
 (* removes a redundant word from a string before performing function [f].
  * fails if the redundant word wasn't what was expected. *)
 let extra_word word f str =
@@ -60,7 +71,8 @@ let rec is_substring str sub pos=
  * each element of the list is trimmed to remove extra spaces. *)
 let rec list_cols_vals input del : (string list * string) =
   let (h,t) = next_chunk input del in
-  let subs = is_substring h "values" 0 in
+  print_endline h;
+  let subs = is_substring h "VALUES" 0 in
   match h, t, fst subs with
   | s1, Some s2, true ->
       let fst_val = S.trim (S.sub s1 (snd subs + 6) (S.length s1 - (snd subs + 6))) in
@@ -78,6 +90,20 @@ let rec rid_parenthesis xs =
               else
                 if S.get f (S.length f - 1) = ')' then S.sub f 0 (S.length f-1)
                 else f) xs
+(* used for update. This helper creates a tuple that returns a tuple of all of
+the columns and the value that you are replacing, and the rest of the
+command for where*)
+let rec parse_set (cmd:string) (acc:(string*string) list ) : (string*string) list * string  =
+  let (next,commands) = next_word cmd in
+  if S.lowercase next = "where" then
+    (acc,commands)
+  else
+    let (set_column,next_commands) = next_word_comma cmd in
+    let (column_name,other_string) = next_word set_column in
+    let (trivial,other_string) = next_word_quote other_string in
+    let column_value = S.sub other_string 0 (S.length other_string -1) in
+    let new_acc = (column_name,column_value)::acc in
+    parse_set next_commands new_acc
 
 (******** OTHER ********)
 
@@ -134,16 +160,16 @@ let rec convert_col_type col typ =
     match typ with
             |TString -> let new_vals =
               List.map (fun x -> convert_to_vstring x ) col.vals in
-              {col with vals = new_vals}
+              {col with vals = new_vals; typ = TString}
             |TInt -> let new_vals =
               List.map (fun x -> convert_to_vint x ) col.vals in
-              {col with vals = new_vals}
+              {col with vals = new_vals; typ = TInt}
             |TFloat -> let new_vals =
               List.map (fun x -> convert_to_vfloat x) col.vals in
-              {col with vals = new_vals}
+              {col with vals = new_vals; typ = TFloat}
             |TBool ->  let new_vals =
               List.map (fun x -> convert_to_vbool x ) col.vals in
-              {col with vals = new_vals}
+              {col with vals = new_vals; typ = TBool}
 
 
 let add_nulls tbl =
@@ -165,7 +191,7 @@ let drop_col tbl cmd =
   let (col_name, cmd_2) = next_word cmd in
   if cmd_2 = "" then
     let new_tbl = List.filter (fun x -> x.name <> col_name) tbl.cols in
-    if List.length tbl.cols <> List.length new_tbl then failwith "does not exist"
+    if List.length tbl.cols = List.length new_tbl then failwith "does not exist"
     else {tbl with cols = new_tbl}
   else failwith "not a command"
 
@@ -190,7 +216,7 @@ let rec replace_table db tab_name table =
 (* Converts [str] to value type *)
 let get_val (str:string) =
   if String.get str 0 = ''' then
-    VString (String.sub str 1 ((String.length str)-1))
+    VString (String.sub str 1 ((String.length str)-2))
   else
     try VInt(int_of_string str) with
     | _ -> (try VBool(bool_of_string str) with
@@ -205,28 +231,34 @@ let val_ok value val_typ =
   | VInt _, TInt | VBool _, TBool | VFloat _, TFloat | VString _, TString -> true
   | _, _ -> false
 
+(* debugging function *)
+let typ_to_str = function
+  | TInt -> "TInt"
+  | TBool -> "TBool"
+  | TFloat -> "TFloat"
+  | TString -> "TString"
+
 (* Adds a list of strings [vals] to [cols]. [cols_left] keeps track of columns
    that haven't been added to yet.
    Only add a value if its type matches the column's type.
    If [cols] is longer than [vals], add VNull to the rest of the columns *)
-let rec add_to_columns vals cols cols_left =
-  match vals, cols, cols_left with
-  | [], c, [] -> c
-  | [], h::t, _ ->
+let rec add_to_columns vals cols acc=
+  match vals, cols, acc with
+  | [], [], acc -> acc
+  | [], h::t, acc ->
       (* More columns than values given, so append VNull *)
       let new_c = {name=h.name; vals=h.vals @ [VNull]; typ=h.typ} in
-      add_to_columns [] (new_c::t) t
-  | h::t, _, [] -> failwith "too many values given"
-  | h1::t1, h2::t2, _ ->
+      add_to_columns [] t (acc @ [new_c])
+  | h::t, [], _ -> failwith "too many values given"
+  | h1::t1, h2::t2, acc ->
       (* Convert string to a value type *)
       let h1_val = get_val h1 in
       (* Check if type of values matches column type before appending *)
       if val_ok h1_val h2.typ then
         let new_c = {name=h2.name; vals=h2.vals @ [h1_val]; typ=h2.typ} in
-        add_to_columns t1 (new_c::t2) t2
+        add_to_columns t1 t2 (acc @ [new_c])
       else
         failwith "mismatched types"
-  | _, _, _ -> failwith "bad"
 
 let rec replace_col c cols =
   match cols with
@@ -328,12 +360,51 @@ let rec new_cols (cl : column list) (i : int list) (acc : column list) =
             typ = h.typ}] in
             new_cols t i newacc
 
+
+(* This helper function takes in a column's value list, the list of ints from
+  where that must be replaced, and the value it is replacing it with to create
+  a new value list*)
+let rec update_values (vals : value list) (ind : int list) (value:string)
+  (counter: int) (val_type: val_type): value list =
+  match ind,vals with
+  |[],_ -> vals
+  |h::t,h'::t' -> if h = counter then
+                    let new_value = (match val_type with
+                      |TInt -> convert_to_vint (VString(value))
+                      |TBool -> convert_to_vbool (VString(value))
+                      |TFloat -> convert_to_vfloat (VString(value))
+                      |TString -> convert_to_vstring (VString(value))) in
+                    new_value::(update_values t' t value (counter+1) val_type)
+                  else
+                    h'::(update_values t' ind value (counter+1) val_type)
+  |_,_ -> failwith "Something happened that shouldn't have happened"
+
+(* This helper function takes in a table's column list, the list of ints from
+  where, an accumulator of a new column list, and the value_list that was
+  parsed from the SET, and returns a new column list*)
+let rec create_cols (cl : column list) (i : int list) (acc : column list)
+  (val_list: (string*string) list) : column list=
+  let rec find_col (column: column) (val_list:(string*string) list) (i:int list) =
+    match val_list with
+    |[] -> column
+    |h::t -> if column.name = (fst(h)) then
+                let new_values = update_values (column.vals) i (snd(h)) 0 column.typ in
+              {name = column.name; vals = new_values; typ = column.typ}
+              else
+                find_col column t i in
+  match cl with
+  |[] -> acc
+  |h::t -> let col = find_col h val_list i in
+            create_cols t i (col::acc) val_list
+
+
+
+
 let print x = print_string "hi"
 
 let match_string x y = Some 1
 
 let index_filter x y = []
-
 
 (**********************)
 (*      Commands      *)
@@ -414,22 +485,21 @@ let insert (db:db) (req:string) : db =
      column names *)
   if snd_word_lower = "values" then
     (* Get rid of beginning/ending parenthesis around input values *)
-    let values = String.sub rest' 0 ((String.length rest') - 1) in
+    let values = String.sub rest' 1 ((String.length rest') - 2) in
     (* Convert to value list and add to columns *)
     let val_lst = list_chunks values ',' in
-    let columns = add_to_columns val_lst table.cols table.cols in
+    let columns = add_to_columns val_lst table.cols [] in
     (* Construct new list of columns for this table and replace table *)
     let new_table = {title=table.title; cols=columns} in
     replace_table db tab_name new_table
   else
-    let cols_vals = list_cols_vals (rest') ',' in
+    let () = print_string rest in
+    let cols_vals = list_cols_vals (rest) ',' in
     let cols = rid_parenthesis (fst cols_vals) in
     let vals = rid_parenthesis (list_chunks (snd cols_vals) ',') in
     let new_cols = add_to_some_cols vals cols table.cols table.cols in
     let new_table = {title=table.title; cols=new_cols} in
     replace_table db tab_name new_table
-
-
 
 (******** UPDATE ********)
 
@@ -438,12 +508,20 @@ let insert (db:db) (req:string) : db =
  * [new_vals] is in the form [("cat_name", "new_val_at_the_row")]
  * i.e.
  * UPDATE Customers
- * SET ContactName = "Alfred", City="Hamburg"
+ * SET ContactName = "Alfred", City = "Hamburg"
  * WHERE CustomerName = "Alfred 2.0" *)
-let update (db:db) (tab_name:string) (new_vals:(string * string) list)
-           (reqs:string) : db =
-  failwith "unimplemented"
-
+let update (db:db) (cmd:string) : db =
+  let (tab_name,next_commands) = next_word cmd in
+  let table = find_table db tab_name in
+  let (keyword_set,next_commands) = next_word next_commands in
+    if S.lowercase keyword_set = "set" then
+      let (val_list,next_commands) = parse_set next_commands [] in
+      let indices = where table next_commands in
+      let new_cols = create_cols table.cols indices [] val_list in
+      let new_table = {title = tab_name; cols = new_cols} in
+      replace_table db tab_name new_table
+    else
+      failwith "Did not provide SET parameters"
 
 (******** DELETE ********)
 
