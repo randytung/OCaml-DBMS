@@ -81,13 +81,30 @@ TEST "Drop" = failwith ""
 
 let col1 = {name = "Name"; vals = [VString "Grant Stento"; VString "Kristy Liao"];
        typ = TString}
-let col2 = {name = "Phone Number"; vals = [VInt 456; VInt 654]; typ = TInt}
+let col2 = {name = "Phone_Number"; vals = [VInt 456; VInt 654]; typ = TInt}
 
 let db = [{title = "Phone_book"; cols = [col1;col2]}]
+
 TEST "Alter_Add" = let new_db = alter db "Phone_book ADD Address string" in
   let col3 = {name = "Address"; vals = [VNull; VNull]; typ = TString} in
   let add_db = [{title = "Phone_book"; cols = [col3;col1;col2]}] in
   new_db = add_db
+
+TEST "Alter Drop" = let new_db = alter db "Phone_book DROP COLUMN Name" in
+  let drop_db = [{title = "Phone_book"; cols = [col2]}] in
+  new_db = drop_db
+
+TEST "Alter Modify with correct type" =
+  let new_db = alter db "Phone_book MODIFY COLUMN Phone_Number float" in
+  let col3 = {name = "Phone_Number"; vals = [VFloat 456.; VFloat 654.]; typ = TFloat} in
+  let modify_db = [{title = "Phone_book"; cols = [col1;col3]}] in
+  modify_db = new_db
+
+TEST "Alter Modify with incorrect type" =
+  let new_db = alter db "Phone_book MODIFY COLUMN Name boolean" in
+  let col3 = {name = "Name"; vals = [VNull; VNull]; typ = TBool} in
+  let modify_db = [{title = "Phone_book"; cols = [col3;col2]}] in
+  new_db = modify_db
 
 
 (* Tests for exceptions *)
