@@ -15,7 +15,7 @@ val insert : db -> string -> db
 
 (*updates a record in the table with new values matched with their corresponding
 * categories*)
-val update : db -> string -> (string * string) list -> string -> db
+val update : db -> string -> db
 
 (*deletes a given row from a given table*)
 val delete : db -> string -> db

@@ -35,3 +35,6 @@ let create_tbl (tbl:Yojson.Basic.json) : table =
 let create_db (js:Yojson.Basic.json) : db =
   let tbl_lst = [js] |> filter_member "tables" |> flatten in
   List.map create_tbl tbl_lst
+
+ let json2 = Yojson.Basic.from_file "phonebook.json"
+
