@@ -1,34 +1,21 @@
 open Yojson.Basic.Util
 open Types
 
-let convert_value = function
-  | VNull -> "%NaN%"
-  | VInt x -> string_of_int x
-  | VBool x -> string_of_bool x
-  | VFloat x -> string_of_float x
-  | VString x -> x
-
-let convert_type = function
-  | TInt -> "integer"
-  | TBool -> "boolean"
-  | TFloat -> "float"
-  | TString -> "string"
-
 let build_value v =
-  "\"" ^ (convert_value v) ^ "\", "
+  "\"" ^ (val_to_string v) ^ "\", "
 
 let build_column col =
   let val_str = List.fold_left (fun x y -> x ^ (build_value y)) "" (col.vals) in
   "        {\n          \"name\": \"" ^ col.name ^
   "\",\n          \"values\": [" ^
   (String.sub val_str 0 (max 0 ((String.length val_str) - 2))) ^
-  "],\n          \"typ\": \"" ^ (convert_type col.typ) ^
+  "],\n          \"typ\": \"" ^ (type_to_string col.typ) ^
   "\"\n        },\n"
 
 let build_table tbl =
   let col_str = List.fold_left (fun x y -> x ^ (build_column y)) "" (tbl.cols) in
   "    {\n      \"title\": \"" ^ tbl.title ^
-  "\",\n      \"categories\": [\n" ^
+  "\",\n      \"columns\": [\n" ^
   (String.sub col_str 0 (max 0 ((String.length col_str) - 2))) ^
   "\n      ]\n    },\n"
 

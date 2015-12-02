@@ -5,11 +5,11 @@
       "columns": [
         {
           "name": "Name",
-          "values": ["Randy Tung", "Arthur Wang"],
+          "values": ["'Randy Tung'", "'Arthur Wang'"],
           "typ": "string"
         },
         {
-          "name": "Phone Number",
+          "name": "PhoneNumber",
           "values": ["123", "321"],
           "typ": "integer"
         }
@@ -20,11 +20,11 @@
       "columns": [
         {
           "name": "Name",
-          "values": ["GrantStento", "Kristy Liao"],
+          "values": ["'Grant Stento'", "'Kristy Liao'"],
           "typ": "string"
         },
         {
-          "name": "Phone Number",
+          "name": "PhoneNumber",
           "values": ["456", "654"],
           "typ": "integer"
         }
