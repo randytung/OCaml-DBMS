@@ -35,7 +35,7 @@ let convert_col_type (col:column) (typ:val_type) : column =
       | TBool, TString -> val_to_vbool
       | _, _ -> failwith "can't convert col type to new type" in
     let new_vals = List.rev_map f col.vals in
-    {col with vals = (List.rev new_vals)}
+    {col with vals = (List.rev new_vals); typ = typ}
 
 (* adds a col to [tbl] as specified in [cmd] *)
 let add_col (tbl:table) (cmd:string) : table =
@@ -56,7 +56,7 @@ let drop_col (tbl:table) (cmd:string) : table =
   if cmd_2 <> "" then failwith "not a command"
   else
     let new_tbl = List.filter (fun x -> x.name <> col_name) tbl.cols in
-    if List.length tbl.cols <> List.length new_tbl
+    if List.length tbl.cols = List.length new_tbl
     then failwith "does not exist"
     else {tbl with cols = new_tbl}
 
