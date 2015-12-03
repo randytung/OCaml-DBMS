@@ -8,13 +8,10 @@ let rec read_lines acc =
   let s = read_line () in
   let new_acc =
     if acc = "" then s else acc^" "^s in
-  if s.[String.length s - 1] = ';'
+  if (try s.[String.length s - 1] = ';' with _ -> false)
   then S.sub new_acc 0 (S.length new_acc - 1)
   else read_lines new_acc
 
-(* prompts for user input, calls operations, saves the database using builder,
- * and recursively initializes itself with the revised db until user input
- * causes the loop to halt *)
 let rec loop (db:db) (file_name:string) : unit =
   Printf.printf "Enter a command, or type \"help\" for a list of commands.\n";
   let input = read_lines "" in
@@ -22,7 +19,7 @@ let rec loop (db:db) (file_name:string) : unit =
   | "help"  -> help(); loop db file_name
   | "quit"  -> save db file_name
   | _       -> (let new_db =
-                    try (let x = revise_db db input in
+                    try (let x = eval db input in
                          print_string "Success!\n"; x)
                     with
                     | Failure msg -> print_string ("Error: " ^ msg ^

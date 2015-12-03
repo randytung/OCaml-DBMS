@@ -19,9 +19,9 @@ let to_op = function
   | "between" -> Bt
   | "like" -> Lk
   | "in" -> In
+  | "isnull" -> Nl
+  | "notnull" -> NNl
   | _ -> failwith "parser error - not an op"
-
-let dels = [" "; ","; "("; ")"; "="; "+"; "-";"*"; "/"; "and"; "or"]
 
 let lex str dels =
   let qts = chr_split_lst str '\'' false in

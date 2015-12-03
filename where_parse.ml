@@ -170,7 +170,7 @@ and percent_match (mtch_str:string) (word:string)
   match wldcrds with
   | [] -> true
   | next_wc::tl ->
-    let next_i = String.index_from mtch_str (wc_i + 1) next_wc in
+    let next_i = S.index_from mtch_str (wc_i + 1) next_wc in
     let str_btwn = S.sub mtch_str (wc_i + 1) (next_i - wc_i - 1) in
     match match_index str_btwn (S.sub word wc_i (S.length word - wc_i)) with
     | None -> false
@@ -234,8 +234,8 @@ let parse_lk first (cols:column list) tokens =
   let (second, tokens_2) = next_val_col cols tokens in
   let val_is_match vl mtch_str =
     let word = match vl with
-              | VString a -> a
-              | _ -> failwith "not a string" in
+               | VString a -> a
+               | _ -> failwith "not a string" in
     let chars = explode_string mtch_str in
     let wldcrds = List.filter (fun x -> List.mem x ['%';'_';'[';']']) chars in
     lk_matcher mtch_str word wldcrds in
@@ -284,8 +284,13 @@ let parse_in first (cols:column list) tokens =
   let matches = List.rev (in_matcher comps (all_indices cols) []) in
   (matches, tokens_2)
 
+let parse_nl eq first (cols:column list) tokens =
+  let compare = if eq then val_eq else val_neq in
+  let matches = parse_compare compare first (`V VNull) cols in
+  (matches, tokens)
 
-(* Parse Chain *)
+
+(* Parse Loop *)
 
 (* break off any parens from [tokens] before calling parse_ops *)
 let rec parse_parens (cols:column list) tokens =
@@ -313,6 +318,8 @@ and parse_ops first (cols:column list) tokens =
                           | Bt -> parse_bt
                           | Lk -> parse_lk
                           | In -> parse_in
+                          | Nl -> parse_nl true
+                          | NNl -> parse_nl false
                           | _ -> failwith ("parse error: invalid operator") in
                   parse_connectors cols (f first cols t)
   | _ -> failwith "parse error"

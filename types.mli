@@ -35,6 +35,10 @@ type op =
   | Bt
   | Lk
   | In
+  | Nl
+  | NNl
+
+(* value comparison functions *)
 
 val val_eq : value -> value -> bool
 

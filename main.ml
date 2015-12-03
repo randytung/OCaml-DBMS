@@ -18,7 +18,8 @@ let rec db_exists () =
 (* repeats prompt for input until a valid db can be created *)
 let rec get_db prompt again =
   let file_name = get_input prompt in
-  if String.sub file_name ((String.length file_name) - 5) 5 <> ".json"
+  if (try String.sub file_name ((String.length file_name) - 5) 5 <> ".json"
+      with _ -> true)
   then (print_string "Invalid response.\n"; get_db prompt again)
   else if not again then ([], file_name)
   else
@@ -42,8 +43,6 @@ let create again =
     first ^ "[Name must be of the format \"[db_name].json\"]\n" in
   get_db prompt again
 
-(* prompts for a file to import, calls parser to create a db, and initializes
- * the REPL using the db and filename *)
 let main () : unit =
   let (db, file_name) = create (db_exists()) in
   loop db file_name

@@ -35,6 +35,8 @@ type op =
   | Bt
   | Lk
   | In
+  | Nl
+  | NNl
 
 (* value comparison functions *)
 
@@ -46,6 +48,7 @@ let val_eq (a:value) (b:value) : bool =
   | VFloat x, VInt y -> x=(float_of_int y)
   | VFloat x, VFloat y -> x=y
   | VBool x, VBool y -> x=y
+  | VNull, VNull -> true
   | _, _ -> false
 
 let val_neq (a:value) (b:value) : bool =
@@ -56,6 +59,8 @@ let val_neq (a:value) (b:value) : bool =
   | VFloat x, VInt y -> x<>(float_of_int y)
   | VFloat x, VFloat y -> x<>y
   | VBool x, VBool y -> x<>y
+  | VNull, VNull -> false
+  | VNull, _ | _, VNull -> true
   | _, _ -> false
 
 let val_gt (a:value) (b:value) : bool =

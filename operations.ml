@@ -41,7 +41,7 @@ let convert_col_type (col:column) (typ:val_type) : column =
 let add_col (tbl:table) (cmd:string) : table =
   let (col_name, col_type) = next_word cmd in
   if List.exists (fun x -> x.name = col_name) tbl.cols
-     || not (check_format col_name) then failwith "name taken"
+     || not (check_format col_name) then failwith "invalid name"
   else
     let col_typ = string_to_type col_type in
     let add_nulls tbl =
@@ -75,16 +75,18 @@ let modify_col (tbl:table) (cmd:string) : table =
   {tbl with cols = new_cols}
 
 (* modifies columns in [cl] to only have the values whose indices are in [il] *)
-let filter_cols (cl:column list) (il:int list) : column list =
+let filter_cols (cl:column list) (il:int list) (eq:bool) : column list =
   (* filters only the elements from [element_lst]
    * whose indices are in [index_lst] *)
   let filter_vals element_lst index_lst =
     let rec n_v il el i acc =
       match il, el with
-      | [], _ -> acc
-      | _, [] -> failwith "stupid"
-      | ih::it, eh::et -> if ih=i then n_v it et (i+1) (eh::acc)
-                          else n_v il et (i+1) acc in
+      | [], eh::et -> if eq then acc else n_v il et (i+1) (eh::acc)
+      | _, [] -> if eq then failwith "more indices than elements" else acc
+      | ih::it, eh::et -> let (eq_acc, neq_acc) =
+                            if eq then (eh::acc,acc) else (acc,eh::acc) in
+                          if ih=i then n_v it et (i+1) eq_acc
+                          else n_v il et (i+1) neq_acc in
     List.rev (n_v (List.sort_uniq (-) index_lst) element_lst 0 []) in
   List.rev (List.rev_map (fun x -> {x with vals = filter_vals (x.vals) il}) cl)
 
@@ -94,8 +96,8 @@ let filter_cols (cl:column list) (il:int list) : column list =
 let print (tbl_name:string) (col_lst:column list) : unit =
   Printer.print tbl_name col_lst
 
-let where_dels = [" "; ","; "("; ")"; "="; ">"; "<";
-                  "or"; "and"; "between"; "like"; "in"]
+let where_dels = [" "; ","; "("; ")"; "="; ">"; "<"; "or"; "and";
+                  "between"; "like"; "in"; "isnull"; "notnull"]
 
 (* returns indices of rows in [tbl] that satisfy parameters in [cmd] *)
 let where (tbl:table) (cmd:string) : int list =
@@ -114,7 +116,6 @@ let set (tbl:table) (cmd:string) : (string * value list) list =
 (**********************)
 (*      Commands      *)
 (**********************)
-
 
 (******** SELECT ********)
 
@@ -136,7 +137,7 @@ let select (db:db) (cmd : string) : db =
 (* If "where" is present, match values according to where.
  * Otherwise, match all values. *)
   let prnt_cols = (try (let matches = extra_word "where" (where tbl) cmd_2 in
-                       filter_cols col_lst matches)
+                       filter_cols col_lst matches true)
                    with _ -> col_lst) in
   (print tbl_name prnt_cols; db)
 
@@ -234,7 +235,7 @@ let delete (db:db) (cmd:string) : db =
   let (tbl_name, cmd_2) = next_word cmd in
   let tbl = find_table db tbl_name in
   let matches = extra_word "where" (where tbl) cmd_2 in
-  let new_tbl = {tbl with cols = filter_cols tbl.cols matches} in
+  let new_tbl = {tbl with cols = filter_cols tbl.cols matches false} in
   replace_table db new_tbl
 
 
@@ -263,7 +264,6 @@ let alter (db:db) (cmd:string) : db =
   replace_table db new_tbl
 
 
-(* evaluates the command given to it and returns an updated db *)
 let eval (db:db) (cmd:string) : db =
   let (op, cmd_2) = next_word cmd in
   match S.lowercase op with
@@ -275,8 +275,3 @@ let eval (db:db) (cmd:string) : db =
   | "drop"   -> extra_word "table" (drop db) cmd_2
   | "alter"  -> extra_word "table" (alter db) cmd_2
   | _        -> failwith "not a command"
-
-(* takes an existing db and user input to evaluate commands and return an
- * updated db *)
-let revise_db (db:db) (input:string) : db =
-  eval db input
