@@ -1,8 +1,7 @@
-
 {
   "tables": [
     {
-      "title": "Phone Book",
+      "title": "PhoneBook",
       "columns": [
         {
           "name": "Name",
@@ -17,7 +16,7 @@
       ]
     },
     {
-      "title": "Phone Book 2",
+      "title": "PhoneBook2",
       "columns": [
         {
           "name": "Name",
