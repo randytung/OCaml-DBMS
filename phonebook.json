@@ -10,7 +10,7 @@
         },
         {
           "name": "Number",
-          "values": ["9", "9"],
+          "values": ["11", "11"],
           "typ": "integer"
         }
       ]

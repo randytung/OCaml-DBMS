@@ -114,7 +114,7 @@ TEST "Update" =
   (* test without where *)
   let t6 = try let _ = update db_update "Phonebook SET Number = 6" in false
             with _ -> true in
-  t6 && t5 && t4 && t2 && t3 || t1
+  t6 && t5 && t4 && t2 && t3 && t1
 
 
 
