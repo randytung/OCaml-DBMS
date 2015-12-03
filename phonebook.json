@@ -1,16 +1,16 @@
 {
   "tables": [
     {
-      "title": "PhoneBook",
+      "title": "Phonebook",
       "columns": [
         {
           "name": "Name",
-          "values": ["'Randy'", "'Arthur'"],
+          "values": ["'Wang'", "'Grant'"],
           "typ": "string"
         },
         {
-          "name": "PhoneNumber",
-          "values": ["123", "321"],
+          "name": "Number",
+          "values": ["11", "11"],
           "typ": "integer"
         }
       ]
