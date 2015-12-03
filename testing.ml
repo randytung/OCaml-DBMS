@@ -20,14 +20,28 @@ let nums = {name="Number"; vals=[VNull; VInt 6; VInt 5]; typ=TInt}
 let db = [{title="Phonebook"; cols=[names; nums]}]
 
 
-TEST "Create" = let db_tbl = create db "Student (Name string,netid string)" in
+TEST "Create" =
+  (*test with correct input*)
+  let db_tbl = create db "Student (Name string,netid string)" in
   let name =  {name="Name"; vals=[]; typ=TString} in
   let netid = {name="netid"; vals=[]; typ=TString} in
   let check_db = [{title="Student"; cols = [netid;name]};{title="Phonebook";
     cols=[names; nums]} ] in
   let _ = check_db = db_tbl in
+  (*test with empty columns*)
   let db_tbl2 = create db "People ()" in
-  db_tbl2 = db_tbl2
+    let check_db2 = [{title="People"; cols = []};{title="Phonebook";
+    cols = [names; nums]}] in
+  let _ = check_db2 = db_tbl2 in
+  (*testing with existing table name*)
+  let test1 = try let _ = create db "Phonebook ()" in false
+              with _ -> true in
+  let _ = test1 in
+  (*testing with nonexisting type*)
+  let test2 = try let _  = create db "Person (Name int, Number cheese)" in false
+              with _ -> true in
+  test2
+
 
 
 let add_val col v =
