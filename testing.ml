@@ -11,12 +11,24 @@ let demodb = [{title="Customers";cols=[{name="CustomerID";vals=[VInt(1);VInt(2);
               {name="City";vals=[VString("Berlin");VString("Mexico D.F.");VString("Mexico D.F.");VString("London");VString("Lulea")];typ=TString};
               {name="PostalCode";vals=[VString("12209");VString("05021");VString("05023");VString("WA1 1DP");VString("S-958 22")];typ=TString}]}]
 TEST "Select" = (select (demodb) "CustomerName,City FROM Customers") = demodb
-TEST "Create" = failwith ""
+
+
 
 let names = {name="Name"; vals=[VString "Arthur"; VString "Grant"]; typ=TString}
 let nums = {name="Number"; vals=[VNull; VInt 6; VInt 5]; typ=TInt}
 
 let db = [{title="Phonebook"; cols=[names; nums]}]
+
+
+TEST "Create" = let db_tbl = create db "Student (Name string,netid string)" in
+  let name =  {name="Name"; vals=[]; typ=TString} in
+  let netid = {name="netid"; vals=[]; typ=TString} in
+  let check_db = [{title="Student"; cols = [netid;name]};{title="Phonebook";
+    cols=[names; nums]} ] in
+  let _ = check_db = db_tbl in
+  let db_tbl2 = create db "People ()" in
+  db_tbl2 = db_tbl2
+
 
 let add_val col v =
   let new_vals = col.vals @ [v] in
@@ -66,6 +78,7 @@ TEST "DeleteAND" = (delete demodb "Customers
   {name="Address";vals=[VString("Avda. de la Constitucion 2222");VString("Mataderos 2312");VString("120 Hanover Sq.");VString("Berguvsvagen 8")];typ=TString};
   {name="City";vals=[VString("Mexico D.F.");VString("Mexico D.F.");VString("London");VString("Lulea")];typ=TString};
   {name="PostalCode";vals=[VString("05021");VString("05023");VString("WA1 1DP");VString("S-958 22")];typ=TString}]}]);
+
 TEST "DeleteOR" = (delete demodb "Customers
   WHERE CustomerName='Alfreds Futterkiste' AND ContactName='Maria Anders'") =
   ([{title="Customers";cols=[{name="CustomerID";vals=[VInt(2);VInt(3);VInt(4)];typ=TInt};
@@ -80,13 +93,12 @@ let drop_db = [{title="Customers";cols=[{name="CustomerID";vals=[VInt(1);VInt(2)
               {name="ContactName";vals=[VString("Maria Anders");VString("Ana Trujillo");VString("Antonio Moreno");VString("Thomas Hardy");VString("Christina Berglund")];
               typ=TString}]};{title="Phonebook"; cols=[names; nums]}]
 
+
 TEST "Drop" = let new_db = drop drop_db "Customers" in
   let dropped_db = [{title="Phonebook"; cols=[names; nums]}] in
   let _ = new_db = dropped_db in
   let next_db = drop new_db "Phonebook" in
   next_db = []
-
-
 
 
 let col1 = {name = "Name"; vals = [VString "Grant Stento"; VString "Kristy Liao"];
