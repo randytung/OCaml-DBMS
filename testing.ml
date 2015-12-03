@@ -41,8 +41,6 @@ TEST "Create" =
               with _ -> true in
   test2 && test3 && test4 && test
 
-
-
 let add_val col v =
   let new_vals = col.vals @ [v] in
   {name=col.name; vals=new_vals; typ=col.typ}
@@ -57,6 +55,12 @@ TEST "Insert with spaces" =
   let db' = insert db "Phonebook VALUES ('Kristy  ', 2)" in
   let names' = add_val names (VString "Kristy  ") in
   let nums' = add_val nums (VInt 2) in
+  db' = [{title="Phonebook"; cols=[names'; nums']}]
+
+TEST "Insert 1 value" =
+  let db' = insert db "Phonebook (Name) VALUES ('Ellen')" in
+  let names' = add_val names (VString "Ellen") in
+  let nums' = add_val nums (VNull) in
   db' = [{title="Phonebook"; cols=[names'; nums']}]
 
 TEST "Insert with 2 specified columns" =
@@ -74,13 +78,27 @@ let stuff5 = {name="Stuff 5"; vals=[VNull; VNull]; typ=TFloat}
 let big_db = [{title="Stuffs"; cols=[stuff1; stuff2; stuff3; stuff4; stuff5]}]
 
 TEST "Insert with multiple specified columns" =
-  let db' = insert big_db "Stuffs (Stuff 2, Stuff 5, Stuff 4, Stuff 3) VALUES (1, 3.4, true, false)" in
+  let db' = insert big_db ("Stuffs (Stuff 2, Stuff 5, Stuff 4, Stuff 3) " ^
+            "VALUES (1, 3.4, true, false)") in
   let stuff1' = add_val stuff1 VNull in
   let stuff3' = add_val stuff3 (VBool false) in
   let stuff2' = add_val stuff2 (VInt 1) in
   let stuff5' = add_val stuff5 (VFloat 3.4) in
   let stuff4' = add_val stuff4 (VBool true) in
   db' = [{title="Stuffs"; cols=[stuff1'; stuff2'; stuff3'; stuff4'; stuff5']}]
+
+TEST "Insert certain columns without specifying column names" =
+  try let _  = insert db "Phonebook VALUES ('Ellen')" in false
+  with _ -> true
+
+TEST "Insert without values" =
+  try let _  = insert db "Phonebook ('Ellen')" in false
+  with _ -> true
+
+TEST "Insert uneven number of columns and values" =
+  try let _  = insert db "Phonebook (Name, Number) VALUES ('Ellen')" in false
+  with _ -> true
+
 
 let names = {name="Name"; vals=[VString "Arthur"; VString "Grant"]; typ=TString}
 let nums = {name="Number"; vals=[VInt 6; VInt 5]; typ=TInt}
@@ -117,7 +135,6 @@ TEST "Update" =
   t6 && t5 && t4 && t2 && t3 && t1
 
 
-
 let delnames = {name="Name"; vals=[VString "Arthur"; VString "Arthur";
   VString "Grant"]; typ=TString}
 let delnums = {name="Number"; vals=[VInt 5; VInt 6; VInt 5]; typ=TInt}
@@ -131,6 +148,7 @@ TEST "DeleteAND" = (delete db "Phonebook where Name = 'Arthur' AND Number = 5") 
 TEST "DeleteOR" = (delete db "Phonebook where Name = 'Arthur' OR Number = 5") =
   ([{title="Phonebook";cols=[{name="Name"; vals=[];
     typ=TString}; {name="Number"; vals=[];typ=TInt}]}])
+
 
 
 let drop_db = [{title="Customers";cols=[{name="CustomerID";vals=[VInt(1);VInt(2);VInt(3);VInt(4);VInt(5)];typ=TInt};
@@ -172,8 +190,3 @@ TEST "Alter Modify with incorrect type" =
   let col3 = {name = "Name"; vals = [VNull; VNull]; typ = TBool} in
   let modify_db = [{title = "Phone_book"; cols = [col3;col2]}] in
   new_db = modify_db
-
-
-(* Tests for exceptions *)
-TEST_UNIT "Select" = failwith ""
-TEST_UNIT "Insert" = failwith ""
