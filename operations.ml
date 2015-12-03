@@ -48,7 +48,7 @@ let add_col (tbl:table) (cmd:string) : table =
       if List.length tbl.cols = 0 then []
       else List.rev_map (fun x -> VNull) (List.hd tbl.cols).vals in
     let new_col = {name = col_name; vals = add_nulls tbl; typ = col_typ} in
-    {tbl with cols = new_col::tbl.cols}
+    {tbl with cols = List.rev (new_col::(List.rev tbl.cols))}
 
 (* removes a col from [tbl] as specified in [cmd] *)
 let drop_col (tbl:table) (cmd:string) : table =
@@ -149,9 +149,10 @@ let create (db:db) (cmd:string) : db =
   if List.exists (fun x -> x.title = tbl_name) db || not (check_format tbl_name)
   then failwith "not a valid title name"
   else
-    let col_name_str = trim_parens (S.trim cmd_2) in
-    let col_names_typs = chr_split_lst col_name_str ',' true in
     let tbl_shell = {title = tbl_name; cols = []} in
+    let col_name_str = trim_parens (S.trim cmd_2) in
+    if S.trim col_name_str = "" then tbl_shell::db else
+    let col_names_typs = chr_split_lst col_name_str ',' true in
     let new_tbl = List.fold_left add_col tbl_shell col_names_typs in
     new_tbl::db
   (* the list.fold call will call add_col on the accumulator, which is an empty

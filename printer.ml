@@ -5,7 +5,6 @@ let len = S.length
 (* two less than actual length, to account for borders *)
 let screen_len = 78
 let max_num_cols = 7
-let val_buffer = 8
 
 let get_col_len num_cols = (screen_len - num_cols + 1) / num_cols
 
@@ -33,10 +32,17 @@ let build_unit str max_len =
             (repeat_str " " (max_len - center_start - (len str))) in
   "|" ^ s
 
+let print_title title =
+  let t_len = len title in
+  let tbl_bar = "+" ^ (repeat_str "-" t_len) ^ "+\n" in
+  let pr_t = tbl_bar ^ (build_unit title t_len) ^ "|\n" ^ tbl_bar in
+  print_string pr_t
+
 let print tbl_name col_lst =
   let (cols,is_truncated) = limit_cols max_num_cols col_lst in
   let title = tbl_name ^ (if is_truncated then " (Truncated)" else "") in
   let num_cols = List.length cols in
+  if num_cols = 0 then print_title title else
   let col_len = get_col_len num_cols in
   let full_len = num_cols * (col_len + 1) - 1 in
   let tbl_bar = "+" ^ (repeat_str "-" full_len) ^ "+\n" in
