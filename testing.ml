@@ -18,21 +18,20 @@ TEST "Create" =
   let netid = {name="netid"; vals=[]; typ=TString} in
   let check_db = [{title="Student"; cols = [netid;name]};{title="Phonebook";
     cols=[names; nums]} ] in
-  let _ = check_db = db_tbl in
+  let test1 = check_db = db_tbl in
   (*test with empty columns*)
   let db_tbl2 = create db "People ()" in
     let check_db2 = [{title="People"; cols = []};{title="Phonebook";
     cols = [names; nums]}] in
-  let _ = check_db2 = db_tbl2 in
+  let test2 = check_db2 = db_tbl2 in
   (*testing with existing table name*)
-  let test1 = try let _ = create db "Phonebook ()" in false
+  let test3 = try let _ = create db "Phonebook ()" in false
               with _ -> true in
-  let _ = test1 in
   (*testing with nonexisting type*)
-  let test2 = try let _  = create db "Person (Name int, Number cheese)" in false
+  let test4 = try let _  = create db "Person (Name int, Number cheese)" in false
               with _ -> true in
 
-  test2 && test3 && test4 && test
+  test2 && test3 && test4 && test1
 
 let add_val col v =
   let new_vals = col.vals @ [v] in
@@ -80,7 +79,6 @@ TEST "Insert with multiple specified columns" =
   let stuff4' = add_val stuff4 (VBool true) in
   db' = [{title="Stuffs"; cols=[stuff1'; stuff2'; stuff3'; stuff4'; stuff5']}]
 
-TEST "Update" = failwith ""
 
 TEST "Insert certain columns without specifying column names" =
   try let _  = insert db "Phonebook VALUES ('Ellen')" in false
