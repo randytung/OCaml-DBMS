@@ -168,7 +168,15 @@ let rec lk_matcher (mtch_str:string) (word:string)
 and percent_match (mtch_str:string) (word:string)
                   (wc_i:int) (wldcrds:char list) : bool  =
   match wldcrds with
-  | [] -> true
+  | [] ->
+    let mtch_end = S.sub mtch_str (wc_i + 1) (S.length mtch_str - wc_i - 1) in
+    (match match_index mtch_end (S.sub word wc_i (S.length word - wc_i)) with
+     | None -> false
+     | Some i_aftr_prcnt ->
+       let word_rest =
+           (S.sub word (wc_i + i_aftr_prcnt + (S.length mtch_end))
+           (S.length word - i_aftr_prcnt - wc_i - (S.length mtch_end))) in
+       word_rest = "")
   | next_wc::tl ->
     let next_i = S.index_from mtch_str (wc_i + 1) next_wc in
     let str_btwn = S.sub mtch_str (wc_i + 1) (next_i - wc_i - 1) in

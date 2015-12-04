@@ -5,18 +5,12 @@
       "columns": [
         {
           "name": "Name",
-          "values": ["'Randy Tung'", "'Arthur Wang'", "'A'"],
+          "values": ["'Arthur Wang'", "'Randy Tung'"],
           "typ": "string"
         },
         {
           "name": "PhoneNumber",
-          "values": ["123", "321", "4"],
-          "values": ["'Wang'", "'Grant'"],
-          "typ": "string"
-        },
-        {
-          "name": "Number",
-          "values": ["11", "11"],
+          "values": ["123", "4"],
           "typ": "integer"
         }
       ]

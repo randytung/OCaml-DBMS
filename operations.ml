@@ -82,6 +82,7 @@ let filter_cols (cl:column list) (il:int list) (eq:bool) : column list =
     let rec n_v il el i acc =
       match il, el with
       | [], eh::et -> if eq then acc else n_v il et (i+1) (eh::acc)
+      | [], [] -> acc
       | _, [] -> if eq then failwith "more indices than elements" else acc
       | ih::it, eh::et -> let (eq_acc, neq_acc) =
                             if eq then (eh::acc,acc) else (acc,eh::acc) in
@@ -91,6 +92,12 @@ let filter_cols (cl:column list) (il:int list) (eq:bool) : column list =
   List.rev (List.rev_map (fun x -> {x with vals = filter_vals (x.vals) il}) cl)
 
 (**** Misc ****)
+
+let print_int_lst lst =
+  let rec a = function
+    | h::t -> (string_of_int h)^(a t)
+    | _ -> "" in
+  print_string (a lst)
 
 (* prints the given [col_lst] as a table with name [tbl_name] *)
 let print (tbl_name:string) (col_lst:column list) : unit =
@@ -102,7 +109,8 @@ let where_dels = [" "; ","; "("; ")"; "="; ">"; "<"; "or"; "and";
 (* returns indices of rows in [tbl] that satisfy parameters in [cmd] *)
 let where (tbl:table) (cmd:string) : int list =
   let tokens = Lex.lex cmd where_dels in
-  Where_parse.parse (tbl.cols) tokens
+  let lst = Where_parse.parse (tbl.cols) tokens in
+  print_int_lst lst; lst
 
 let set_dels = [" "; ","; "("; ")"; "="; "+"; "-";"*"; "/"; "and"; "or"]
 

@@ -25,7 +25,7 @@ let rec get_db prompt again =
   else
     let json = try Some (Yojson.Basic.from_file file_name) with _ -> None in
     match json with
-    | None -> (print_string "File does not exist.\n"; get_db prompt again)
+    | None -> (print_string "File is not valid.\n"; get_db prompt again)
     | Some j -> let db = (try `Db (create_db j) with
                           | Failure msg -> `Fail ("JSON Parse Error: " ^
                                                   msg ^ "\n")
