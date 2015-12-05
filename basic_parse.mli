@@ -1,3 +1,4 @@
+open Types
 (* returns a pair [(word, rest)] where [word] is the input string up to but
  * not including the first instance of del.
  * [rest] is the rest of the input string, with the first delimiter removed.
