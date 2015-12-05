@@ -93,12 +93,6 @@ let filter_cols (cl:column list) (il:int list) (eq:bool) : column list =
 
 (**** Misc ****)
 
-let print_int_lst lst =
-  let rec a = function
-    | h::t -> (string_of_int h)^(a t)
-    | _ -> "" in
-  print_string (a lst)
-
 (* prints the given [col_lst] as a table with name [tbl_name] *)
 let print (tbl_name:string) (col_lst:column list) : unit =
   Printer.print tbl_name col_lst
@@ -109,8 +103,7 @@ let where_dels = [" "; ","; "("; ")"; "="; ">"; "<"; "or"; "and";
 (* returns indices of rows in [tbl] that satisfy parameters in [cmd] *)
 let where (tbl:table) (cmd:string) : int list =
   let tokens = Lex.lex cmd where_dels in
-  let lst = Where_parse.parse (tbl.cols) tokens in
-  print_int_lst lst; lst
+  Where_parse.parse (tbl.cols) tokens
 
 let set_dels = [" "; ","; "("; ")"; "="; "+"; "-";"*"; "/"; "and"; "or"]
 
