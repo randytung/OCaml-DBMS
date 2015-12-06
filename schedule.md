@@ -6,7 +6,7 @@ This project implements a DBMS that we made from scratch.
 
 To Do List
 - [x] Parser (11/17)
-- [ ] Operations (11/22)
+- [x] Operations (11/22)
 - [x] Builder (11/26 - 11/29)
 - [x] REPL (11/30)
 - [x] Main (11/30)
@@ -14,14 +14,14 @@ To Do List
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- |
 | 11/15  | 11/16 | 11/17 | 11/18 | 11/19 | 11/20 | 11/21 |
-|        |~~Parser~~|~~Parser~~|~~Prelim~~ | ~~Prelim~~| Ops   | Ops   |
+|        |~~Parser~~|~~Parser~~|~~Prelim~~ | ~~Prelim~~|~~Ops~~|~~Ops~~|
 
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- |
 | 11/22  | 11/23 | 11/24 | 11/25 | 11/26 | 11/27 | 11/28 |
-| Ops    |~~Builder~~|   *   |   *   | Thx   |   *   |   *   |
+|~~Ops~~|~~Builder~~|   *   |   *   | Thx   |   *   |   *   |
 
 | Sun    | Mon   |Tues   |  Wed  | Thurs | Fri   | Sat   | 
 | ------ | ----- | ----- | ----- | ----- | ----- | ----- |
 | 11/29  | 11/30 | 12/1  | 12/2  | 12/3  | 12/4  | 12/5  |
-|~~Builder~~|~~REPL/MAIN~~| Test| Test  |  Test |turnup |
+|~~Builder~~|~~REPL/MAIN~~|~~Test~~|~~Test~~|~~Test~~|  |
