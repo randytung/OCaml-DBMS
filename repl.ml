@@ -50,7 +50,15 @@ let help () =
     "and ranges of characters) \n[!charlist] (matches character NOT " ^
     "specified within brackets) \nExamples: \nSELECT * FROM Customers " ^
     "WHERE City LIKE 'ber%'; \nSELECT * FROM Customers WHERE City LIKE " ^
-    "'[a-c]%'; \n" ^ line) in
+    "'[a-c]%'; \nSELECT * FROM Customers WHERE City IN ('Paris','London'); \n" ^
+    "SELECT * FROM Products WHERE Price BETWEEN 10 AND 20; \nSELECT * FROM " ^
+    "Customers WHERE CustomerID=1; \n" ^ line) in
+
+  (* Examples for where taken from:
+     http://www.w3schools.com/sql/sql_between.asp
+     http://www.w3schools.com/sql/sql_in.asp
+     http://www.w3schools.com/sql/sql_wildcards.asp
+     http://www.w3schools.com/sql/sql_where.asp *)
 
   print_string (line ^ sel ^ create ^ insert ^ update ^ delete ^
                 drop ^ alter ^ where)
