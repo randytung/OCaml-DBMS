@@ -3,9 +3,10 @@ open Builder
 open Types
 
 let help () =
-  let line = "--------------------------------------------------------------------------------\n" in
+  let line = ("--------------------------------------------------------------" ^
+              "------------------\n") in
   let sel =
-    ("(1) SELECT: selects specified data from tbe database. \n" ^ "Syntax: \n" ^
+    ("(1) SELECT: prints specified data from the database. \n" ^ "Syntax: \n" ^
     "SELECT column_name1,column_name2,... FROM table_name; \n or \n" ^
     "SELECT * FROM table_name; \n or \nSELECT ... FROM table_name " ^
     "WHERE ...; \n ***See very end for more details about WHERE. \n" ^ line) in
@@ -47,7 +48,7 @@ let help () =
     "Supports the following operations: =, <>, >, <, >=, <=, BETWEEN, " ^
     "LIKE, IN \n" ^ "Wildcards: \n% (matches 0 or more characters) \n" ^
     "_ (matches a single character) \n[chars] (matches character in sets " ^
-    "and ranges of characters) \n[!charlist] (matches character NOT " ^
+    "and ranges of characters) \n[!chars] (matches character NOT " ^
     "specified within brackets) \nExamples: \nSELECT * FROM Customers " ^
     "WHERE City LIKE 'ber%'; \nSELECT * FROM Customers WHERE City LIKE " ^
     "'[a-c]%'; \nSELECT * FROM Customers WHERE City IN ('Paris','London'); \n" ^
